@@ -1,5 +1,6 @@
 import type { Category } from '../types/category'
 import type { License } from '../types/license'
+import { PLATFORM_LABELS } from '../types/platform'
 
 /** Минимальная длина запроса для фильтрации списка */
 export const MIN_SEARCH_LENGTH = 3
@@ -12,6 +13,7 @@ export const SEARCHABLE_FIELDS = [
   'comment',
   'category',
   'tags',
+  'platform',
 ] as const
 
 export type SearchableField = (typeof SEARCHABLE_FIELDS)[number]
@@ -191,6 +193,8 @@ export function findLicenseSearchMatch(
   const categoryName = resolveCategoryName(license, categories)
   const tagsText = license.tags.join(' ')
 
+  const platformText = `${PLATFORM_LABELS[license.platform]} ${license.platform}`
+
   const fields: Array<[SearchableField, string]> = [
     ['name', license.name],
     ['licenseKey', license.licenseKey],
@@ -198,6 +202,7 @@ export function findLicenseSearchMatch(
     ['comment', license.comment],
     ['category', categoryName],
     ['tags', tagsText],
+    ['platform', platformText],
   ]
 
   for (const [field, value] of fields) {

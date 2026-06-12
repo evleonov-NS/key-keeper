@@ -3,6 +3,8 @@ import type { License } from '../types/license'
 import type { LicenseStatus } from '../types/license-status'
 import { PLATFORM_LABELS, type Platform } from '../types/platform'
 import { NO_CATEGORY_FILTER } from '../store/license-filter-store'
+import type { LicenseSortField, SortOrder } from './sort-licenses'
+import { sortLicenseResults } from './sort-licenses'
 import { computeLicenseStatus } from './status'
 import {
   filterLicensesBySearch,
@@ -15,6 +17,9 @@ export type LicenseFilters = {
   categoryId: string | null
   platform: Platform | null
   status: LicenseStatus | null
+  tag: string | null
+  sortBy: LicenseSortField
+  sortOrder: SortOrder
 }
 
 export function hasActiveFilters(filters: LicenseFilters): boolean {
@@ -22,7 +27,8 @@ export function hasActiveFilters(filters: LicenseFilters): boolean {
     isSearchActive(filters.query) ||
     filters.categoryId !== null ||
     filters.platform !== null ||
-    filters.status !== null
+    filters.status !== null ||
+    filters.tag !== null
   )
 }
 
@@ -54,6 +60,13 @@ function applyStatusFilter(
   )
 }
 
+function applyTagFilter(licenses: License[], tag: string): License[] {
+  const normalized = tag.toLowerCase()
+  return licenses.filter((license) =>
+    license.tags.some((item) => item.toLowerCase() === normalized),
+  )
+}
+
 export function filterLicenses(
   licenses: License[],
   filters: LicenseFilters,
@@ -74,7 +87,12 @@ export function filterLicenses(
     scoped = applyStatusFilter(scoped, filters.status, expiringThresholdDays)
   }
 
-  return filterLicensesBySearch(scoped, filters.query, categories)
+  if (filters.tag !== null) {
+    scoped = applyTagFilter(scoped, filters.tag)
+  }
+
+  const searched = filterLicensesBySearch(scoped, filters.query, categories)
+  return sortLicenseResults(searched, filters.sortBy, filters.sortOrder)
 }
 
 export function getCategoryFilterLabel(

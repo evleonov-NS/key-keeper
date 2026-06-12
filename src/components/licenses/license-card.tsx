@@ -13,10 +13,14 @@ import { StatusBadge } from './status-badge'
 type LicenseCardProps = {
   license: License
   highlight?: SearchHighlight | null
+  selected?: boolean
+  selectable?: boolean
+  onToggleSelect?: (id: string) => void
   onEdit: (license: License) => void
   onArchive: (license: License) => void
   onCategoryClick: (categoryId: string) => void
   onPlatformClick: (platform: Platform) => void
+  onTagClick?: (tag: string) => void
 }
 
 type CopyableFieldButtonProps = {
@@ -107,10 +111,14 @@ function CopyableFieldButton({
 export function LicenseCard({
   license,
   highlight = null,
+  selected = false,
+  selectable = false,
+  onToggleSelect,
   onEdit,
   onArchive,
   onCategoryClick,
   onPlatformClick,
+  onTagClick,
 }: LicenseCardProps) {
   const [keyCopied, setKeyCopied] = useState(false)
   const [loginCopied, setLoginCopied] = useState(false)
@@ -186,8 +194,29 @@ export function LicenseCard({
   }
 
   return (
-    <article className="group relative rounded-xl border border-border bg-surface px-4 py-3 transition-shadow duration-theme hover:shadow-card">
-      <div className="flex items-start justify-between gap-3">
+    <article
+      className={`group relative rounded-xl border bg-surface px-4 py-3 transition-shadow duration-theme hover:shadow-card ${
+        selected ? 'border-accent/50 ring-1 ring-accent/20' : 'border-border'
+      }`}
+    >
+      {selectable ? (
+        <div className="absolute left-3 top-3 z-[1]">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect?.(license.id)}
+            onClick={(event) => event.stopPropagation()}
+            aria-label={`Выбрать «${license.name}»`}
+            className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+          />
+        </div>
+      ) : null}
+
+      <div
+        className={`flex items-start justify-between gap-3 ${
+          selectable ? 'pl-6' : ''
+        }`}
+      >
         <div className="min-w-0 flex-1">
           <button
             type="button"
@@ -202,7 +231,15 @@ export function LicenseCard({
               onClick={handlePlatformClick}
               className="rounded-sm text-accent underline-offset-2 transition-colors hover:text-accent-hover hover:underline"
             >
-              {PLATFORM_LABELS[license.platform]}
+              {highlight?.field === 'platform' ? (
+                <HighlightText
+                  text={PLATFORM_LABELS[license.platform]}
+                  start={highlight.start}
+                  end={highlight.end}
+                />
+              ) : (
+                PLATFORM_LABELS[license.platform]
+              )}
             </button>
             {' · '}
             <button
@@ -241,6 +278,24 @@ export function LicenseCard({
 
       {license.comment ? (
         <p className="mt-2 text-xs text-muted">{commentContent}</p>
+      ) : null}
+
+      {license.tags.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {license.tags.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                onTagClick?.(item)
+              }}
+              className="rounded-md bg-surface-elevated px-1.5 py-0.5 text-[10px] text-muted transition-colors hover:text-accent"
+            >
+              #{item}
+            </button>
+          ))}
+        </div>
       ) : null}
 
       <div className="mt-3 flex items-center justify-between gap-2">

@@ -4,7 +4,7 @@ import { SessionControls } from '../auth/session-controls'
 import { ThemeToggle } from '../ui/theme-toggle'
 import { AppFooter } from './app-footer'
 import { SidebarCategories } from './sidebar-categories'
-import { SidebarSearch } from './sidebar-search'
+import { SidebarSort } from './sidebar-sort'
 import type { Theme } from '../../utils/theme'
 
 export type AppView = 'dashboard' | 'licenses' | 'categories' | 'settings'
@@ -36,7 +36,7 @@ export function AppLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-surface-elevated/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-white shadow-sm">
               <KeyRound size={18} />
@@ -54,7 +54,7 @@ export function AppLayout({
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:flex-row sm:px-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:flex-row sm:px-6">
         <aside
           aria-label="Боковое меню"
           className="w-full shrink-0 sm:w-52"
@@ -84,7 +84,7 @@ export function AppLayout({
           </nav>
 
           <SidebarCategories onNavigate={onNavigate} />
-          <SidebarSearch />
+          <SidebarSort />
         </aside>
 
         <main className="min-w-0 flex-1">{children}</main>

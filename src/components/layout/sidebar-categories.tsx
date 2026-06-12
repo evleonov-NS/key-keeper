@@ -16,7 +16,6 @@ export function SidebarCategories({ onNavigate }: SidebarCategoriesProps) {
   const categories = useCategoryStore((state) => state.categories)
   const categoryFilter = useLicenseFilterStore((state) => state.categoryId)
   const setCategoryFilter = useLicenseFilterStore((state) => state.setCategoryFilter)
-  const clearCategoryFilter = useLicenseFilterStore((state) => state.clearCategoryFilter)
 
   const sortedCategories = useMemo(
     () =>
@@ -27,11 +26,7 @@ export function SidebarCategories({ onNavigate }: SidebarCategoriesProps) {
   )
 
   const selectCategory = (categoryId: string) => {
-    if (categoryFilter === categoryId) {
-      clearCategoryFilter()
-      return
-    }
-    setCategoryFilter(categoryId)
+    setCategoryFilter(categoryFilter === categoryId ? null : categoryId)
     onNavigate('licenses')
   }
 

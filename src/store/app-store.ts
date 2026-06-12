@@ -20,6 +20,7 @@ type AppStore = {
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
   setKeepSessionOpen: (keepSessionOpen: boolean) => void
+  setSidebarSortEnabled: (sidebarSortEnabled: boolean) => void
   incrementChangeCount: () => void
   loadDemoSeed: () => void
   clearDemo: () => void
@@ -60,6 +61,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
+  setSidebarSortEnabled: (sidebarSortEnabled) => {
+    set((state) => ({
+      settings: { ...state.settings, sidebarSortEnabled },
+    }))
+    get().incrementChangeCount()
+  },
+
   incrementChangeCount: () =>
     set((state) => ({
       meta: { ...state.meta, changeCount: state.meta.changeCount + 1 },
@@ -89,7 +97,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     useLicenseStore.getState().setLicenses(vault.licenses)
     useCategoryStore.getState().setCategories(vault.categories)
     set({
-      settings: vault.settings,
+      settings: { ...DEFAULT_APP_SETTINGS, ...vault.settings },
       meta: vault.meta,
       isInitialized: true,
       error: null,

@@ -7,6 +7,8 @@ type SearchInputProps = {
   placeholder?: string
   /** Компактный вид для бокового меню */
   compact?: boolean
+  /** Подсказка под полем (в тулбаре выносится отдельно) */
+  showHint?: boolean
 }
 
 export function SearchInput({
@@ -14,6 +16,7 @@ export function SearchInput({
   onChange,
   placeholder = 'Поиск…',
   compact = false,
+  showHint = true,
 }: SearchInputProps) {
   return (
     <div>
@@ -53,9 +56,13 @@ export function SearchInput({
           </button>
         ) : null}
       </div>
-      <p className={`mt-1.5 text-muted ${compact ? 'text-[10px] leading-snug' : 'text-xs'}`}>
-        от {MIN_SEARCH_LENGTH} символов · RU/EN · категории · теги
-      </p>
+      {showHint ? (
+        <p
+          className={`mt-1.5 text-muted ${compact ? 'text-[10px] leading-snug' : 'text-xs'}`}
+        >
+          от {MIN_SEARCH_LENGTH} символов · RU/EN · платформа · категории · теги
+        </p>
+      ) : null}
     </div>
   )
 }

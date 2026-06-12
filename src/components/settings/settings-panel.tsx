@@ -11,6 +11,7 @@ export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
   const loadDemoSeed = useAppStore((state) => state.loadDemoSeed)
   const clearDemo = useAppStore((state) => state.clearDemo)
   const settings = useAppStore((state) => state.settings)
+  const setSidebarSortEnabled = useAppStore((state) => state.setSidebarSortEnabled)
   const hasDemoLicenses = useLicenseStore((state) =>
     state.licenses.some((license) => license.isDemo),
   )
@@ -74,6 +75,27 @@ export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
             </button>
           )}
         </div>
+      </section>
+
+      <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
+        <h2 className="mb-2 text-lg font-semibold">Интерфейс</h2>
+        <p className="mb-4 text-sm text-muted">
+          Дополнительные элементы бокового меню.
+        </p>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:bg-surface-elevated">
+          <input
+            type="checkbox"
+            checked={settings.sidebarSortEnabled}
+            onChange={(event) => setSidebarSortEnabled(event.target.checked)}
+            className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+          />
+          <span className="text-sm">
+            Сортировка в боковом меню
+            <span className="mt-0.5 block text-xs text-muted">
+              Поле «Название / срок / платформа…» под категориями
+            </span>
+          </span>
+        </label>
       </section>
 
       <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">

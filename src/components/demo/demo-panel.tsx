@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Database, Plus } from 'lucide-react'
 import type { License } from '../../types/license'
 import type { LicenseStatus } from '../../types/license-status'
@@ -8,7 +8,10 @@ import { useLicenseStore } from '../../store/license-store'
 import { useCategoryStore } from '../../store/category-store'
 import { useLicenseFilterStore } from '../../store/license-filter-store'
 import { LicenseCard } from '../licenses/license-card'
+import { LicenseBulkBar } from '../licenses/license-bulk-bar'
 import { LicenseFormModal } from '../licenses/license-form-modal'
+import { LicenseListToolbar } from '../licenses/license-list-toolbar'
+import { LicenseTable } from '../licenses/license-table'
 import { FilterChip } from '../ui/filter-chip'
 import {
   filterLicenses,
@@ -16,6 +19,7 @@ import {
   getPlatformFilterLabel,
   hasActiveFilters,
 } from '../../utils/filter-licenses'
+import { collectLicenseTags } from '../../utils/license-tags'
 import { isSearchActive } from '../../utils/search'
 import { countLicensesByStatus, STATUS_FILTER_LABELS } from '../../utils/status'
 
@@ -72,23 +76,31 @@ export function DemoPanel() {
   const [licenseModal, setLicenseModal] = useState<LicenseModalState>({
     mode: 'closed',
   })
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const query = useLicenseFilterStore((state) => state.query)
   const categoryFilter = useLicenseFilterStore((state) => state.categoryId)
   const platformFilter = useLicenseFilterStore((state) => state.platform)
   const statusFilter = useLicenseFilterStore((state) => state.status)
+  const tagFilter = useLicenseFilterStore((state) => state.tag)
+  const sortBy = useLicenseFilterStore((state) => state.sortBy)
+  const sortOrder = useLicenseFilterStore((state) => state.sortOrder)
+  const viewMode = useLicenseFilterStore((state) => state.viewMode)
+
   const setCategoryFilter = useLicenseFilterStore((state) => state.setCategoryFilter)
-  const clearCategoryFilter = useLicenseFilterStore((state) => state.clearCategoryFilter)
   const setPlatformFilter = useLicenseFilterStore((state) => state.setPlatformFilter)
-  const clearPlatformFilter = useLicenseFilterStore((state) => state.clearPlatformFilter)
   const setStatusFilter = useLicenseFilterStore((state) => state.setStatusFilter)
-  const clearStatusFilter = useLicenseFilterStore((state) => state.clearStatusFilter)
+  const setTagFilter = useLicenseFilterStore((state) => state.setTagFilter)
+  const clearAllFilters = useLicenseFilterStore((state) => state.clearAllFilters)
 
   const meta = useAppStore((state) => state.meta)
   const settings = useAppStore((state) => state.settings)
 
   const licenses = useLicenseStore((state) => state.licenses)
   const archiveLicense = useLicenseStore((state) => state.archiveLicense)
+  const archiveLicenses = useLicenseStore((state) => state.archiveLicenses)
+  const restoreLicenses = useLicenseStore((state) => state.restoreLicenses)
+  const removeLicenses = useLicenseStore((state) => state.removeLicenses)
   const categories = useCategoryStore((state) => state.categories)
 
   const filters = useMemo(
@@ -97,8 +109,19 @@ export function DemoPanel() {
       categoryId: categoryFilter,
       platform: platformFilter,
       status: statusFilter,
+      tag: tagFilter,
+      sortBy,
+      sortOrder,
     }),
-    [query, categoryFilter, platformFilter, statusFilter],
+    [
+      query,
+      categoryFilter,
+      platformFilter,
+      statusFilter,
+      tagFilter,
+      sortBy,
+      sortOrder,
+    ],
   )
 
   const filteredResults = useMemo(
@@ -112,6 +135,30 @@ export function DemoPanel() {
     [licenses, filters, categories, settings.expiringThresholdDays],
   )
 
+  const availableTags = useMemo(
+    () => collectLicenseTags(licenses),
+    [licenses],
+  )
+
+  const visibleIds = useMemo(
+    () => filteredResults.map((result) => result.license.id),
+    [filteredResults],
+  )
+
+  useEffect(() => {
+    const visible = new Set(visibleIds)
+    setSelectedIds((previous) => {
+      const next = new Set([...previous].filter((id) => visible.has(id)))
+      if (
+        next.size === previous.size &&
+        [...next].every((id) => previous.has(id))
+      ) {
+        return previous
+      }
+      return next
+    })
+  }, [visibleIds])
+
   const statusCounts = countLicensesByStatus(
     licenses,
     settings.expiringThresholdDays,
@@ -119,6 +166,19 @@ export function DemoPanel() {
 
   const filtersActive = hasActiveFilters(filters)
   const searchActive = isSearchActive(query)
+  const allVisibleSelected =
+    visibleIds.length > 0 &&
+    visibleIds.every((id) => selectedIds.has(id))
+  const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id))
+
+  const selectedLicenses = useMemo(
+    () => licenses.filter((license) => selectedIds.has(license.id)),
+    [licenses, selectedIds],
+  )
+
+  const allSelectedArchived =
+    selectedLicenses.length > 0 &&
+    selectedLicenses.every((license) => license.status === 'archived')
 
   const handleArchive = (license: License) => {
     if (
@@ -127,45 +187,111 @@ export function DemoPanel() {
       )
     ) {
       archiveLicense(license.id)
+      setSelectedIds((previous) => {
+        const next = new Set(previous)
+        next.delete(license.id)
+        return next
+      })
     }
+  }
+
+  const handleBulkArchive = () => {
+    const ids = selectedLicenses
+      .filter((license) => license.status !== 'archived')
+      .map((license) => license.id)
+    if (ids.length === 0) {
+      return
+    }
+    if (
+      window.confirm(
+        `Переместить в архив выбранные записи (${ids.length})? Их можно восстановить позже.`,
+      )
+    ) {
+      archiveLicenses(ids)
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleBulkRestore = () => {
+    const ids = selectedLicenses
+      .filter((license) => license.status === 'archived')
+      .map((license) => license.id)
+    if (ids.length === 0) {
+      return
+    }
+    if (
+      window.confirm(
+        `Восстановить из архива выбранные записи (${ids.length})?`,
+      )
+    ) {
+      restoreLicenses(ids)
+      setSelectedIds(new Set())
+    }
+  }
+
+  const handleBulkDelete = () => {
+    const ids = [...selectedIds]
+    if (ids.length === 0) {
+      return
+    }
+    if (
+      window.confirm(
+        `Удалить безвозвратно ${ids.length} записей? Это действие нельзя отменить.`,
+      )
+    ) {
+      removeLicenses(ids)
+      setSelectedIds(new Set())
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((previous) => {
+      const next = new Set(previous)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (allVisibleSelected) {
+      setSelectedIds((previous) => {
+        const next = new Set(previous)
+        for (const id of visibleIds) {
+          next.delete(id)
+        }
+        return next
+      })
+      return
+    }
+    setSelectedIds((previous) => new Set([...previous, ...visibleIds]))
   }
 
   const handleCategoryClick = (categoryId: string) => {
-    if (categoryFilter === categoryId) {
-      clearCategoryFilter()
-      return
-    }
-    setCategoryFilter(categoryId)
+    setCategoryFilter(categoryFilter === categoryId ? null : categoryId)
   }
 
   const handlePlatformClick = (platform: Platform) => {
-    if (platformFilter === platform) {
-      clearPlatformFilter()
-      return
-    }
-    setPlatformFilter(platform)
+    setPlatformFilter(platformFilter === platform ? null : platform)
   }
 
   const handleStatusCardClick = (status: LicenseStatus) => {
-    if (statusFilter === status) {
-      clearStatusFilter()
-      return
-    }
-    setStatusFilter(status)
+    setStatusFilter(statusFilter === status ? null : status)
+  }
+
+  const handleTagClick = (tag: string) => {
+    setTagFilter(tagFilter === tag ? null : tag)
   }
 
   const emptyMessage = () => {
     if (searchActive) {
       return `Ничего не найдено по запросу «${query.trim()}».`
     }
-    if (categoryFilter !== null) {
-      return `Нет лицензий в категории «${getCategoryFilterLabel(categoryFilter, categories)}».`
-    }
-    if (platformFilter !== null) {
-      return `Нет лицензий для платформы «${getPlatformFilterLabel(platformFilter)}».`
-    }
-    if (statusFilter !== null) {
-      return `Нет лицензий со статусом «${STATUS_FILTER_LABELS[statusFilter]}».`
+    if (filtersActive) {
+      return 'Нет лицензий по выбранным фильтрам.'
     }
     return null
   }
@@ -226,23 +352,40 @@ export function DemoPanel() {
 
             {categoryFilter !== null ? (
               <FilterChip
-                label={`Фильтр: ${getCategoryFilterLabel(categoryFilter, categories)}`}
-                onClear={clearCategoryFilter}
+                label={`Категория: ${getCategoryFilterLabel(categoryFilter, categories)}`}
+                onClear={() => setCategoryFilter(null)}
               />
             ) : null}
 
             {platformFilter !== null ? (
               <FilterChip
                 label={`Платформа: ${getPlatformFilterLabel(platformFilter)}`}
-                onClear={clearPlatformFilter}
+                onClear={() => setPlatformFilter(null)}
               />
             ) : null}
 
             {statusFilter !== null ? (
               <FilterChip
-                label={`Фильтр: ${STATUS_FILTER_LABELS[statusFilter]}`}
-                onClear={clearStatusFilter}
+                label={`Статус: ${STATUS_FILTER_LABELS[statusFilter]}`}
+                onClear={() => setStatusFilter(null)}
               />
+            ) : null}
+
+            {tagFilter !== null ? (
+              <FilterChip
+                label={`Тег: ${tagFilter}`}
+                onClear={() => setTagFilter(null)}
+              />
+            ) : null}
+
+            {filtersActive ? (
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                className="text-xs text-accent hover:underline"
+              >
+                Сбросить все фильтры
+              </button>
             ) : null}
           </div>
 
@@ -256,25 +399,78 @@ export function DemoPanel() {
           </button>
         </div>
 
+        {licenses.length > 0 ? (
+          <div className="sticky top-14 z-20 -mx-6 border-b border-border bg-surface-elevated px-6 pt-2 pb-0 shadow-sm">
+            <LicenseListToolbar categories={categories} tags={availableTags} />
+          </div>
+        ) : null}
+
+        <LicenseBulkBar
+          selectedCount={selectedIds.size}
+          showRestore={allSelectedArchived}
+          onArchive={handleBulkArchive}
+          onRestore={handleBulkRestore}
+          onDelete={handleBulkDelete}
+          onClear={() => setSelectedIds(new Set())}
+        />
+
         {licenses.length === 0 ? (
           <p className="text-sm text-muted">
             Хранилище пустое. Нажмите «Добавить» или загрузите демо в настройках.
           </p>
         ) : filteredResults.length === 0 ? (
           <p className="text-sm text-muted">{emptyMessage()}</p>
+        ) : viewMode === 'table' ? (
+          <LicenseTable
+            rows={filteredResults}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+            allVisibleSelected={allVisibleSelected}
+            someVisibleSelected={someVisibleSelected}
+            onEdit={(item) => setLicenseModal({ mode: 'edit', license: item })}
+            onArchive={handleArchive}
+            onCategoryClick={handleCategoryClick}
+            onPlatformClick={handlePlatformClick}
+            onTagClick={handleTagClick}
+          />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {filteredResults.map(({ license, highlight }) => (
-              <LicenseCard
-                key={license.id}
-                license={license}
-                highlight={highlight}
-                onEdit={(item) => setLicenseModal({ mode: 'edit', license: item })}
-                onArchive={handleArchive}
-                onCategoryClick={handleCategoryClick}
-                onPlatformClick={handlePlatformClick}
-              />
-            ))}
+          <div className="space-y-3">
+            {filteredResults.length > 1 ? (
+              <label className="inline-flex items-center gap-2 text-xs text-muted">
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  ref={(element) => {
+                    if (element) {
+                      element.indeterminate =
+                        someVisibleSelected && !allVisibleSelected
+                    }
+                  }}
+                  onChange={toggleSelectAll}
+                  className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+                />
+                Выбрать все на странице
+              </label>
+            ) : null}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {filteredResults.map(({ license, highlight }) => (
+                <LicenseCard
+                  key={license.id}
+                  license={license}
+                  highlight={highlight}
+                  selectable
+                  selected={selectedIds.has(license.id)}
+                  onToggleSelect={toggleSelect}
+                  onEdit={(item) => setLicenseModal({ mode: 'edit', license: item })}
+                  onArchive={handleArchive}
+                  onCategoryClick={handleCategoryClick}
+                  onPlatformClick={handlePlatformClick}
+                  onTagClick={handleTagClick}
+                />
+              ))}
+            </div>
           </div>
         )}
       </section>

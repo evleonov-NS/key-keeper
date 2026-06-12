@@ -11,6 +11,8 @@ export type AppSettings = {
   backupReminderChanges: number
   /** Уведомления об истекающих лицензиях */
   notificationsEnabled: boolean
+  /** Блок сортировки в боковом меню */
+  sidebarSortEnabled: boolean
 }
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -20,4 +22,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   backupReminderDays: 30,
   backupReminderChanges: 10,
   notificationsEnabled: false,
+  sidebarSortEnabled: false,
 }

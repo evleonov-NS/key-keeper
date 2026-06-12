@@ -25,7 +25,11 @@ type LicenseStore = {
   ) => License
   updateLicense: (id: string, patch: Partial<License>) => void
   archiveLicense: (id: string) => void
+  archiveLicenses: (ids: string[]) => void
+  restoreLicense: (id: string) => void
+  restoreLicenses: (ids: string[]) => void
   removeLicense: (id: string) => void
+  removeLicenses: (ids: string[]) => void
   clearDemoLicenses: () => void
   hasDemoLicenses: () => boolean
 }
@@ -67,9 +71,17 @@ export const useLicenseStore = create<LicenseStore>((set, get) => ({
   },
 
   archiveLicense: (id) => {
+    get().archiveLicenses([id])
+  },
+
+  archiveLicenses: (ids) => {
+    if (ids.length === 0) {
+      return
+    }
+    const idSet = new Set(ids)
     set((state) => ({
       licenses: state.licenses.map((license) =>
-        license.id === id
+        idSet.has(license.id)
           ? withComputedStatus({
               ...license,
               status: 'archived',
@@ -81,9 +93,41 @@ export const useLicenseStore = create<LicenseStore>((set, get) => ({
     useAppStore.getState().incrementChangeCount()
   },
 
-  removeLicense: (id) => {
+  restoreLicense: (id) => {
+    get().restoreLicenses([id])
+  },
+
+  restoreLicenses: (ids) => {
+    if (ids.length === 0) {
+      return
+    }
+    const idSet = new Set(ids)
     set((state) => ({
-      licenses: state.licenses.filter((license) => license.id !== id),
+      licenses: state.licenses.map((license) => {
+        if (!idSet.has(license.id) || license.status !== 'archived') {
+          return license
+        }
+        return withComputedStatus({
+          ...license,
+          status: 'active',
+          updatedAt: new Date().toISOString(),
+        })
+      }),
+    }))
+    useAppStore.getState().incrementChangeCount()
+  },
+
+  removeLicense: (id) => {
+    get().removeLicenses([id])
+  },
+
+  removeLicenses: (ids) => {
+    if (ids.length === 0) {
+      return
+    }
+    const idSet = new Set(ids)
+    set((state) => ({
+      licenses: state.licenses.filter((license) => !idSet.has(license.id)),
     }))
     useAppStore.getState().incrementChangeCount()
   },
