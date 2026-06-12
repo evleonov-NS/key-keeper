@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react'
-import { Database, Trash2 } from 'lucide-react'
+import { useMemo } from 'react'
+import { Database, KeyRound, Sparkles, Trash2 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import { useLicenseStore } from '../../store/license-store'
 import { useCategoryStore } from '../../store/category-store'
@@ -8,11 +8,14 @@ import { LicenseCard } from '../licenses/license-card'
 import { countLicensesByStatus } from '../../utils/status'
 import { filterLicensesBySearch, isSearchActive } from '../../utils/search'
 
-export function DemoPanel() {
+type DemoPanelProps = {
+  onChangePassword: () => void
+}
+
+export function DemoPanel({ onChangePassword }: DemoPanelProps) {
   const searchQuery = useSearchStore((state) => state.query)
   const clearQuery = useSearchStore((state) => state.clearQuery)
 
-  const isInitialized = useAppStore((state) => state.isInitialized)
   const meta = useAppStore((state) => state.meta)
   const settings = useAppStore((state) => state.settings)
   const loadDemoSeed = useAppStore((state) => state.loadDemoSeed)
@@ -23,12 +26,6 @@ export function DemoPanel() {
     state.licenses.some((license) => license.isDemo),
   )
   const categories = useCategoryStore((state) => state.categories)
-
-  useEffect(() => {
-    if (!isInitialized) {
-      loadDemoSeed()
-    }
-  }, [isInitialized, loadDemoSeed])
 
   const searchResults = useMemo(
     () => filterLicensesBySearch(licenses, searchQuery),
@@ -43,7 +40,7 @@ export function DemoPanel() {
   const handleClearDemo = () => {
     if (
       window.confirm(
-        'Удалить все демо-записи и категории? Ваши реальные данные (когда появятся) не затронуты.',
+        'Удалить все демо-записи и категории? Реальные записи не затронуты.',
       )
     ) {
       clearDemo()
@@ -62,23 +59,43 @@ export function DemoPanel() {
               Добро пожаловать
             </h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-              Демо-данные в памяти (zustand). Поиск — в боковом меню слева.
-              Попробуйте{' '}
+              Данные зашифрованы и сохранены в IndexedDB. Поиск — в боковом
+              меню. Попробуйте{' '}
               <code className="rounded bg-surface px-1 py-0.5 text-xs">ьшс</code>{' '}
               в русской раскладке.
             </p>
           </div>
 
-          {hasDemoLicenses || meta.isDemo ? (
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={handleClearDemo}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
+              onClick={onChangePassword}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-elevated"
             >
-              <Trash2 size={16} />
-              Очистить демо
+              <KeyRound size={16} />
+              Сменить пароль
             </button>
-          ) : null}
+
+            {!hasDemoLicenses ? (
+              <button
+                type="button"
+                onClick={() => loadDemoSeed()}
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-elevated"
+              >
+                <Sparkles size={16} />
+                Загрузить демо
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleClearDemo}
+                className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
+              >
+                <Trash2 size={16} />
+                Очистить демо
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -114,8 +131,8 @@ export function DemoPanel() {
 
         {licenses.length === 0 ? (
           <p className="text-sm text-muted">
-            Нет записей. Демо-данные можно загрузить снова после перезагрузки
-            страницы.
+            Хранилище пустое. Нажмите «Загрузить демо» для учебных записей или
+            добавьте лицензии на Этапе 3.
           </p>
         ) : searchActive && searchResults.length === 0 ? (
           <p className="text-sm text-muted">
@@ -139,8 +156,9 @@ export function DemoPanel() {
           '—'}
         {' · '}
         schemaVersion: {useAppStore.getState().getVaultData().schemaVersion}
+        {meta.isDemo ? ' · демо-данные' : ''}
         {' · '}
-        in-memory only
+        зашифрованный блоб
       </p>
     </div>
   )

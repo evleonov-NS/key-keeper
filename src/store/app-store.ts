@@ -18,9 +18,12 @@ type AppStore = {
   isInitialized: boolean
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
+  setKeepSessionOpen: (keepSessionOpen: boolean) => void
   incrementChangeCount: () => void
   loadDemoSeed: () => void
   clearDemo: () => void
+  applyVaultData: (vault: VaultData) => void
+  resetStores: () => void
   getVaultData: () => VaultData
 }
 
@@ -43,6 +46,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   setError: (error) => set({ error }),
+
+  setKeepSessionOpen: (keepSessionOpen) =>
+    set((state) => ({
+      settings: { ...state.settings, keepSessionOpen },
+    })),
 
   incrementChangeCount: () =>
     set((state) => ({
@@ -67,6 +75,28 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => ({
       meta: { ...state.meta, isDemo: false },
     }))
+  },
+
+  applyVaultData: (vault) => {
+    useLicenseStore.getState().setLicenses(vault.licenses)
+    useCategoryStore.getState().setCategories(vault.categories)
+    set({
+      settings: vault.settings,
+      meta: vault.meta,
+      isInitialized: true,
+      error: null,
+    })
+  },
+
+  resetStores: () => {
+    useLicenseStore.getState().setLicenses([])
+    useCategoryStore.getState().setCategories([])
+    set({
+      settings: { ...DEFAULT_APP_SETTINGS },
+      meta: createEmptyMeta(),
+      isInitialized: false,
+      error: null,
+    })
   },
 
   getVaultData: () => ({

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { KeyRound } from 'lucide-react'
+import { SessionControls } from '../auth/session-controls'
 import { ThemeToggle } from '../ui/theme-toggle'
 import { AppFooter } from './app-footer'
 import { SidebarSearch } from './sidebar-search'
@@ -37,7 +38,10 @@ export function AppLayout({ children, initialTheme }: AppLayoutProps) {
             </div>
           </div>
 
-          <ThemeToggle initialTheme={initialTheme} />
+          <div className="flex items-center gap-2">
+            <SessionControls />
+            <ThemeToggle initialTheme={initialTheme} />
+          </div>
         </div>
       </header>
 
