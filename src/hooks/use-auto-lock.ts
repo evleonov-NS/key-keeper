@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { touchTabSession } from '../crypto/tab-session'
 import { useAppStore } from '../store/app-store'
 import { useAuthStore } from '../store/auth-store'
 
@@ -21,6 +22,8 @@ export function useAutoLock(): void {
     }
 
     const resetTimer = () => {
+      touchTabSession(autoLockMinutes)
+
       if (timerRef.current) {
         clearTimeout(timerRef.current)
       }

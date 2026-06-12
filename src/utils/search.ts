@@ -4,7 +4,12 @@ import type { License } from '../types/license'
 export const MIN_SEARCH_LENGTH = 3
 
 /** Поля лицензии, участвующие в поиске */
-export const SEARCHABLE_FIELDS = ['name', 'licenseKey', 'comment'] as const
+export const SEARCHABLE_FIELDS = [
+  'name',
+  'licenseKey',
+  'accountLogin',
+  'comment',
+] as const
 
 export type SearchableField = (typeof SEARCHABLE_FIELDS)[number]
 
@@ -172,6 +177,7 @@ export function findLicenseSearchMatch(
   const fields: Array<[SearchableField, string]> = [
     ['name', license.name],
     ['licenseKey', license.licenseKey],
+    ['accountLogin', license.accountLogin],
     ['comment', license.comment],
   ]
 

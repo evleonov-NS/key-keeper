@@ -11,8 +11,8 @@ import { generateId } from '../utils/id'
 import { computeLicenseStatus } from '../utils/status'
 
 function createLicense(
-  partial: Omit<License, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'images'> &
-    Partial<Pick<License, 'id' | 'images' | 'status'>>,
+  partial: Omit<License, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'images' | 'accountLogin'> &
+    Partial<Pick<License, 'id' | 'images' | 'status' | 'accountLogin'>>,
 ): License {
   const now = dayjs().toISOString()
   const base: License = {
@@ -22,6 +22,7 @@ function createLicense(
     updatedAt: now,
     status: 'active',
     ...partial,
+    accountLogin: partial.accountLogin ?? '',
   }
 
   const status =
@@ -65,6 +66,7 @@ export function createDemoLicenses(categories: Category[]): License[] {
     createLicense({
       name: 'JetBrains All Products',
       licenseKey: 'DEMO-JB-AAAA-BBBB-CCCC',
+      accountLogin: 'demo.jetbrains.user',
       platform: 'windows',
       category: dev.id,
       activationUrl: 'https://account.jetbrains.com/licenses',
@@ -81,6 +83,7 @@ export function createDemoLicenses(categories: Category[]): License[] {
     createLicense({
       name: '1Password Families',
       licenseKey: 'DEMO-1P-FAM-12345',
+      accountLogin: 'demo.1password.user',
       platform: 'ios',
       category: subs.id,
       activationUrl: 'https://my.1password.com',

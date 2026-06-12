@@ -5,6 +5,7 @@ import {
   encryptBuffer,
   generateSalt,
   getSessionKey,
+  loadTabSessionKey,
   setSessionKey,
   verifyMasterPassword,
 } from '../crypto'
@@ -32,6 +33,23 @@ export async function createVault(
   setSessionKey(key)
 }
 
+export async function unlockVaultWithKey(key: CryptoKey): Promise<VaultData> {
+  const record = await dexieStorage.read()
+  if (!record) {
+    throw new Error('Хранилище не найдено')
+  }
+
+  const valid = await verifyMasterPassword(key, record.verificationBlock)
+  if (!valid) {
+    throw new Error('Сессия недействительна')
+  }
+
+  const plaintext = await decryptBuffer(key, record.encryptedBlob)
+  const vaultData = deserializeVaultData(plaintext)
+  setSessionKey(key)
+  return vaultData
+}
+
 export async function unlockVault(password: string): Promise<VaultData> {
   const record = await dexieStorage.read()
   if (!record) {
@@ -44,10 +62,20 @@ export async function unlockVault(password: string): Promise<VaultData> {
     throw new Error('Неверный мастер-пароль')
   }
 
-  const plaintext = await decryptBuffer(key, record.encryptedBlob)
-  const vaultData = deserializeVaultData(plaintext)
-  setSessionKey(key)
-  return vaultData
+  return unlockVaultWithKey(key)
+}
+
+export async function tryRestoreTabSession(): Promise<VaultData | null> {
+  const key = await loadTabSessionKey()
+  if (!key) {
+    return null
+  }
+
+  try {
+    return await unlockVaultWithKey(key)
+  } catch {
+    return null
+  }
 }
 
 export async function persistVault(vaultData: VaultData): Promise<void> {

@@ -1,10 +1,12 @@
-import { useMemo } from 'react'
-import { Database, KeyRound, Sparkles, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Database, KeyRound, Plus, Sparkles, Trash2 } from 'lucide-react'
+import type { License } from '../../types/license'
 import { useAppStore } from '../../store/app-store'
 import { useLicenseStore } from '../../store/license-store'
 import { useCategoryStore } from '../../store/category-store'
 import { useSearchStore } from '../../store/search-store'
 import { LicenseCard } from '../licenses/license-card'
+import { LicenseFormModal } from '../licenses/license-form-modal'
 import { countLicensesByStatus } from '../../utils/status'
 import { filterLicensesBySearch, isSearchActive } from '../../utils/search'
 
@@ -12,7 +14,16 @@ type DemoPanelProps = {
   onChangePassword: () => void
 }
 
+type LicenseModalState =
+  | { mode: 'closed' }
+  | { mode: 'create' }
+  | { mode: 'edit'; license: License }
+
 export function DemoPanel({ onChangePassword }: DemoPanelProps) {
+  const [licenseModal, setLicenseModal] = useState<LicenseModalState>({
+    mode: 'closed',
+  })
+
   const searchQuery = useSearchStore((state) => state.query)
   const clearQuery = useSearchStore((state) => state.clearQuery)
 
@@ -22,6 +33,7 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
   const clearDemo = useAppStore((state) => state.clearDemo)
 
   const licenses = useLicenseStore((state) => state.licenses)
+  const archiveLicense = useLicenseStore((state) => state.archiveLicense)
   const hasDemoLicenses = useLicenseStore((state) =>
     state.licenses.some((license) => license.isDemo),
   )
@@ -49,6 +61,16 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
   }
 
   const searchActive = isSearchActive(searchQuery)
+
+  const handleArchive = (license: License) => {
+    if (
+      window.confirm(
+        `Переместить «${license.name}» в архив? Запись можно восстановить при редактировании.`,
+      )
+    ) {
+      archiveLicense(license.id)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -120,19 +142,29 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
       </section>
 
       <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
-        <div className="mb-4 flex items-center gap-2">
-          <Database size={18} className="text-accent" />
-          <h2 className="text-lg font-semibold">
-            Лицензии (
-            {searchActive ? `${searchResults.length} из ${licenses.length}` : licenses.length}
-            )
-          </h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Database size={18} className="text-accent" />
+            <h2 className="text-lg font-semibold">
+              Лицензии (
+              {searchActive ? `${searchResults.length} из ${licenses.length}` : licenses.length}
+              )
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setLicenseModal({ mode: 'create' })}
+            className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+          >
+            <Plus size={16} />
+            Добавить
+          </button>
         </div>
 
         {licenses.length === 0 ? (
           <p className="text-sm text-muted">
-            Хранилище пустое. Нажмите «Загрузить демо» для учебных записей или
-            добавьте лицензии на Этапе 3.
+            Хранилище пустое. Нажмите «Добавить» или «Загрузить демо».
           </p>
         ) : searchActive && searchResults.length === 0 ? (
           <p className="text-sm text-muted">
@@ -145,11 +177,28 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
                 key={license.id}
                 license={license}
                 highlight={highlight}
+                onEdit={(item) => setLicenseModal({ mode: 'edit', license: item })}
+                onArchive={handleArchive}
               />
             ))}
           </div>
         )}
       </section>
+
+      {licenseModal.mode === 'create' ? (
+        <LicenseFormModal
+          mode="create"
+          onClose={() => setLicenseModal({ mode: 'closed' })}
+        />
+      ) : null}
+
+      {licenseModal.mode === 'edit' ? (
+        <LicenseFormModal
+          mode="edit"
+          license={licenseModal.license}
+          onClose={() => setLicenseModal({ mode: 'closed' })}
+        />
+      ) : null}
 
       <p className="text-center text-xs text-muted">
         Категории: {categories.map((category) => category.name).join(', ') ||

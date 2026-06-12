@@ -20,6 +20,7 @@ async function licenseToSerializable(license: License): Promise<SerializableLice
 function serializableToLicense(item: SerializableLicense): License {
   return {
     ...item,
+    accountLogin: item.accountLogin ?? '',
     images: item.images.map((bytes) => new Blob([bytes], { type: 'image/webp' })),
   }
 }

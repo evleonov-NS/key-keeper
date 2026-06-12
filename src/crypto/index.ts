@@ -16,3 +16,10 @@ export {
   getSessionKey,
   clearSessionKey,
 } from './session-key'
+export {
+  saveTabSession,
+  touchTabSession,
+  loadTabSessionKey,
+  clearTabSession,
+  isTabSessionExpired,
+} from './tab-session'

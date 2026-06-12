@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { getSessionKey, saveTabSession } from '../crypto'
 import { createDemoVaultData } from '../data/demo-seed'
 import {
   DEFAULT_APP_SETTINGS,
@@ -47,10 +48,17 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setError: (error) => set({ error }),
 
-  setKeepSessionOpen: (keepSessionOpen) =>
+  setKeepSessionOpen: (keepSessionOpen) => {
     set((state) => ({
       settings: { ...state.settings, keepSessionOpen },
-    })),
+    }))
+
+    const key = getSessionKey()
+    if (key) {
+      const { settings } = get()
+      void saveTabSession(key, keepSessionOpen, settings.autoLockMinutes)
+    }
+  },
 
   incrementChangeCount: () =>
     set((state) => ({

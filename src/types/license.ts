@@ -5,6 +5,8 @@ export type License = {
   id: string
   name: string
   licenseKey: string
+  /** Логин / имя пользователя, выданное вместе с ключом (необяз.) */
+  accountLogin: string
   platform: Platform
   category: string | null
   activationUrl: string

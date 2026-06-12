@@ -1,9 +1,15 @@
 import { create } from 'zustand'
-import { clearSessionKey } from '../crypto/session-key'
+import {
+  clearSessionKey,
+  clearTabSession,
+  getSessionKey,
+  saveTabSession,
+} from '../crypto'
 import {
   changeMasterPassword,
   createVault,
   isVaultInitialized,
+  tryRestoreTabSession,
   unlockVault,
 } from '../storage/vault-service'
 import {
@@ -12,7 +18,7 @@ import {
 } from '../storage/vault-persistence'
 import { useSearchStore } from './search-store'
 import { useAppStore } from './app-store'
-import { DEFAULT_APP_SETTINGS, SCHEMA_VERSION } from '../types'
+import { DEFAULT_APP_SETTINGS, SCHEMA_VERSION, type VaultData } from '../types'
 
 export type AuthPhase = 'checking' | 'setup' | 'locked' | 'unlocked'
 
@@ -28,7 +34,7 @@ type AuthStore = {
   clearAuthError: () => void
 }
 
-function createEmptyVaultData() {
+function createEmptyVaultData(): VaultData {
   return {
     schemaVersion: SCHEMA_VERSION,
     licenses: [],
@@ -43,6 +49,26 @@ function createEmptyVaultData() {
   }
 }
 
+async function persistTabSessionFromSettings(
+  settings: VaultData['settings'],
+): Promise<void> {
+  const key = getSessionKey()
+  if (!key) {
+    return
+  }
+  await saveTabSession(
+    key,
+    settings.keepSessionOpen,
+    settings.autoLockMinutes,
+  )
+}
+
+function finishUnlock(vaultData: VaultData): void {
+  useAppStore.getState().applyVaultData(vaultData)
+  startVaultPersistence()
+  void persistTabSessionFromSettings(vaultData.settings)
+}
+
 export const useAuthStore = create<AuthStore>((set) => ({
   phase: 'checking',
   authError: null,
@@ -51,7 +77,21 @@ export const useAuthStore = create<AuthStore>((set) => ({
   initialize: async () => {
     set({ phase: 'checking', authError: null })
     const exists = await isVaultInitialized()
-    set({ phase: exists ? 'locked' : 'setup' })
+
+    if (!exists) {
+      set({ phase: 'setup' })
+      return
+    }
+
+    const restored = await tryRestoreTabSession()
+    if (restored) {
+      finishUnlock(restored)
+      set({ phase: 'unlocked' })
+      return
+    }
+
+    clearTabSession()
+    set({ phase: 'locked' })
   },
 
   setupMasterPassword: async (password) => {
@@ -59,8 +99,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     try {
       const vaultData = createEmptyVaultData()
       await createVault(password, vaultData)
-      useAppStore.getState().applyVaultData(vaultData)
-      startVaultPersistence()
+      finishUnlock(vaultData)
       set({ phase: 'unlocked', isSubmitting: false })
     } catch {
       set({
@@ -74,8 +113,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ isSubmitting: true, authError: null })
     try {
       const vaultData = await unlockVault(password)
-      useAppStore.getState().applyVaultData(vaultData)
-      startVaultPersistence()
+      finishUnlock(vaultData)
       set({ phase: 'unlocked', isSubmitting: false })
     } catch {
       set({
@@ -88,6 +126,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   lock: () => {
     stopVaultPersistence()
     clearSessionKey()
+    clearTabSession()
     useAppStore.getState().resetStores()
     useSearchStore.getState().clearQuery()
     set({ phase: 'locked', authError: null })
@@ -97,6 +136,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ isSubmitting: true, authError: null })
     try {
       await changeMasterPassword(current, next)
+      const settings = useAppStore.getState().settings
+      await persistTabSessionFromSettings(settings)
       set({ isSubmitting: false })
     } catch {
       set({
