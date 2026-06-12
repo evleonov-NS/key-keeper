@@ -1,0 +1,24 @@
+# зависимости и сборка
+node_modules
+dist
+
+# локальные env
+*.local
+.env
+.env.*
+
+# Tauri (этап 11)
+src-tauri/target
+
+# бэкапы — не коммитить
+*.vault
+
+# редактор и ОС
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# логи
+*.log
+npm-debug.log*
