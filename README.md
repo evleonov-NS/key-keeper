@@ -17,7 +17,10 @@
 - Контроль сроков действия с цветовой индикацией и дашбордом.
 - Несколько фото на запись (конвертация в WebP), категории, теги, платформы.
 - Зашифрованный бэкап `.vault` и стильный Excel-экспорт.
+- Поиск по лицензиям (от 3 символов, учёт раскладки RU/EN, подсветка совпадений).
 - Светлая тема по умолчанию, тёмная по переключению. Apple-стиль, минимализм.
+
+**Текущая версия:** `0.1.0` (Этап 1 — модель данных, демо in-memory). Подробности версионирования — [PROJECT.md §10](./PROJECT.md#10-версионирование).
 
 ---
 
@@ -25,13 +28,13 @@
 
 - **React + Vite + TypeScript** — UI и сборка
 - **Tailwind CSS** — стили (светлая тема по умолчанию, `darkMode: 'class'`)
-- **zustand** — состояние
-- **Dexie.js (IndexedDB)** — локальное хранилище
-- **Web Crypto API** — шифрование (AES-GCM + PBKDF2)
-- **SheetJS (xlsx)** — Excel-экспорт
-- **dayjs** — работа с датами
+- **zustand** — состояние (in-memory, этап 1)
+- **Dexie.js (IndexedDB)** — локальное хранилище (этап 2)
+- **Web Crypto API** — шифрование (AES-GCM + PBKDF2, этап 2)
+- **SheetJS (xlsx)** — Excel-экспорт (этап 10)
+- **dayjs** — даты и статусы
 - **lucide-react** — иконки
-- **Tauri 2.x** — десктоп-обёртка (этап 12)
+- **Tauri 2.x** — десктоп-обёртка (этап 11)
 
 ---
 
@@ -90,13 +93,15 @@
     └─ src/
        ├─ main.tsx
        ├─ App.tsx
-       ├─ components/      # UI-компоненты (карточки, формы, дашборд, галерея)
+       ├─ components/      # UI (layout, карточки, поиск, демо)
+       ├─ constants/       # версия приложения, автор, дата релиза
+       ├─ data/            # демо-seed (in-memory)
        ├─ store/           # zustand-сторы
-       ├─ storage/         # слой Dexie/IndexedDB (абстракция для будущего Tauri)
-       ├─ crypto/          # PBKDF2 + AES-GCM, мастер-пароль, авто-лок
-       ├─ export/          # .vault бэкап и Excel-экспорт
-       ├─ types/           # типы данных (License, Category и т.д.)
-       └─ utils/           # даты, статусы, конвертация фото в WebP
+       ├─ storage/         # StorageAdapter (реализация — этап 2)
+       ├─ crypto/          # PBKDF2 + AES-GCM (этап 2)
+       ├─ export/          # .vault бэкап и Excel (этап 10)
+       ├─ types/           # License, Category, VaultData и т.д.
+       └─ utils/           # id, статусы, поиск, тема
 
 ---
 

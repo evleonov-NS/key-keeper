@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { KeyRound } from 'lucide-react'
 import { ThemeToggle } from '../ui/theme-toggle'
+import { AppFooter } from './app-footer'
+import { SidebarSearch } from './sidebar-search'
 import type { Theme } from '../../utils/theme'
 
 type NavItem = {
@@ -22,7 +24,7 @@ type AppLayoutProps = {
 
 export function AppLayout({ children, initialTheme }: AppLayoutProps) {
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-surface-elevated/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
@@ -39,27 +41,33 @@ export function AppLayout({ children, initialTheme }: AppLayoutProps) {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-5xl gap-6 px-4 py-6 sm:px-6">
-        <nav
-          aria-label="Основная навигация"
-          className="hidden w-44 shrink-0 sm:block"
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:flex-row sm:px-6">
+        <aside
+          aria-label="Боковое меню"
+          className="w-full shrink-0 sm:w-52"
         >
-          <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-600 transition-colors duration-theme hover:bg-surface-elevated hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                >
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+          <nav aria-label="Основная навигация">
+            <ul className="flex gap-1 overflow-x-auto sm:flex-col sm:overflow-visible">
+              {NAV_ITEMS.map((item) => (
+                <li key={item.id} className="shrink-0 sm:shrink">
+                  <button
+                    type="button"
+                    className="whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm text-gray-600 transition-colors duration-theme hover:bg-surface-elevated hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white sm:w-full"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <SidebarSearch />
+        </aside>
 
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+
+      <AppFooter />
     </div>
   )
 }

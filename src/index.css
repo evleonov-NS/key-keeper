@@ -36,6 +36,15 @@
   .fade-in {
     animation: fade-in 0.35s ease-out both;
   }
+
+  /* Только наша кнопка очистки — без встроенных control'ов браузера */
+  .search-input::-webkit-search-cancel-button,
+  .search-input::-webkit-search-decoration,
+  .search-input::-webkit-search-results-button,
+  .search-input::-ms-clear {
+    display: none;
+    appearance: none;
+  }
 }
 
 @keyframes fade-in {
