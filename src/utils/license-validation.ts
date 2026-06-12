@@ -66,6 +66,7 @@ export function validateLicenseForm(values: LicenseFormValues): string | null {
 export function toLicensePayload(
   values: LicenseFormValues,
   existing?: License,
+  images?: Blob[],
 ): Omit<License, 'id' | 'createdAt' | 'updatedAt' | 'status'> {
   return {
     name: values.name.trim(),
@@ -81,7 +82,7 @@ export function toLicensePayload(
     isPerpetual: values.isPerpetual,
     remind: values.remind,
     comment: values.comment.trim(),
-    images: existing?.images ?? [],
+    images: images ?? existing?.images ?? [],
     tags: parseTags(values.tagsText),
     isDemo: existing?.isDemo,
   }

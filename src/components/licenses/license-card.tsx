@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react'
-import { Archive, Check, Pencil } from 'lucide-react'
+import { Archive, Camera, Check, Pencil } from 'lucide-react'
 import type { License } from '../../types/license'
 import { PLATFORM_LABELS, type Platform } from '../../types/platform'
 import type { SearchHighlight } from '../../utils/search'
@@ -7,6 +7,7 @@ import { copyWithAutoClear } from '../../utils/clipboard'
 import { NO_CATEGORY_FILTER } from '../../store/license-filter-store'
 import { useCategoryStore } from '../../store/category-store'
 import { HighlightText } from '../ui/highlight-text'
+import { PhotoGalleryModal } from './photo-gallery-modal'
 import { StatusBadge } from './status-badge'
 
 type LicenseCardProps = {
@@ -113,6 +114,7 @@ export function LicenseCard({
 }: LicenseCardProps) {
   const [keyCopied, setKeyCopied] = useState(false)
   const [loginCopied, setLoginCopied] = useState(false)
+  const [galleryOpen, setGalleryOpen] = useState(false)
   const categories = useCategoryStore((state) => state.categories)
   const categoryName =
     categories.find((category) => category.id === license.category)?.name ??
@@ -184,7 +186,7 @@ export function LicenseCard({
   }
 
   return (
-    <article className="group rounded-xl border border-border bg-surface px-4 py-3 transition-shadow duration-theme hover:shadow-card">
+    <article className="group relative rounded-xl border border-border bg-surface px-4 py-3 transition-shadow duration-theme hover:shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <button
@@ -271,6 +273,34 @@ export function LicenseCard({
           ) : null}
         </div>
       </div>
+
+      {license.images.length > 0 ? (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            setGalleryOpen(true)
+          }}
+          aria-label={`Фото: ${license.images.length}`}
+          title={`Фото (${license.images.length})`}
+          className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface-elevated text-muted shadow-sm transition-colors hover:border-accent/50 hover:text-accent"
+        >
+          <Camera size={15} strokeWidth={2} />
+          {license.images.length > 1 ? (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-white">
+              {license.images.length}
+            </span>
+          ) : null}
+        </button>
+      ) : null}
+
+      {galleryOpen ? (
+        <PhotoGalleryModal
+          title={license.name}
+          images={license.images}
+          onClose={() => setGalleryOpen(false)}
+        />
+      ) : null}
     </article>
   )
 }

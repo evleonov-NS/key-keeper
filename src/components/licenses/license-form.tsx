@@ -8,13 +8,14 @@ import {
   type LicenseFormValues,
 } from '../../utils/license-validation'
 import { LicenseKeyField } from './license-key-field'
+import { LicensePhotoField } from './license-photo-field'
 
 type LicenseFormProps = {
   initialLicense?: License
   formError: string | null
   duplicateWarning: string | null
   isSubmitting: boolean
-  onSubmit: (values: LicenseFormValues) => void
+  onSubmit: (values: LicenseFormValues, images: Blob[]) => void
   onCancel: () => void
   onArchive?: () => void
   onRestore?: () => void
@@ -39,6 +40,7 @@ export function LicenseForm({
   const [values, setValues] = useState<LicenseFormValues>(
     initialLicense ? licenseToFormValues(initialLicense) : createEmptyLicenseForm(),
   )
+  const [images, setImages] = useState<Blob[]>(initialLicense?.images ?? [])
 
   const setField = <K extends keyof LicenseFormValues>(
     field: K,
@@ -55,7 +57,7 @@ export function LicenseForm({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    onSubmit(values)
+    onSubmit(values, images)
   }
 
   return (
@@ -233,6 +235,8 @@ export function LicenseForm({
           className={inputClass}
         />
       </div>
+
+      <LicensePhotoField images={images} onChange={setImages} />
 
       <div>
         <label htmlFor="license-comment" className="mb-1.5 block text-sm font-medium">

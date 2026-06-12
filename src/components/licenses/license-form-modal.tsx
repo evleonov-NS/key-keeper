@@ -32,10 +32,11 @@ export function LicenseFormModal({
   const [pendingValues, setPendingValues] = useState<LicenseFormValues | null>(
     null,
   )
+  const [pendingImages, setPendingImages] = useState<Blob[] | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const persistValues = (values: LicenseFormValues) => {
-    const payload = toLicensePayload(values, license)
+  const persistValues = (values: LicenseFormValues, images: Blob[]) => {
+    const payload = toLicensePayload(values, license, images)
     if (mode === 'create') {
       addLicense(payload)
     } else if (license) {
@@ -44,7 +45,7 @@ export function LicenseFormModal({
     onClose()
   }
 
-  const handleSubmit = (values: LicenseFormValues) => {
+  const handleSubmit = (values: LicenseFormValues, images: Blob[]) => {
     const validationError = validateLicenseForm(values)
     if (validationError) {
       setFormError(validationError)
@@ -60,6 +61,7 @@ export function LicenseFormModal({
 
     if (duplicate) {
       setPendingValues(values)
+      setPendingImages(images)
       setDuplicateWarning(
         `Ключ уже используется в «${duplicate.name}». Сохранить всё равно?`,
       )
@@ -68,16 +70,16 @@ export function LicenseFormModal({
     }
 
     setIsSubmitting(true)
-    persistValues(values)
+    persistValues(values, images)
     setIsSubmitting(false)
   }
 
   const confirmDuplicate = () => {
-    if (!pendingValues) {
+    if (!pendingValues || !pendingImages) {
       return
     }
     setIsSubmitting(true)
-    persistValues(pendingValues)
+    persistValues(pendingValues, pendingImages)
     setIsSubmitting(false)
   }
 
@@ -149,6 +151,7 @@ export function LicenseFormModal({
             onClick={() => {
               setDuplicateWarning(null)
               setPendingValues(null)
+              setPendingImages(null)
             }}
             className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium"
           >
