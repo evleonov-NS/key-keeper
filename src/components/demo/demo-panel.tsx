@@ -93,7 +93,6 @@ export function DemoPanel() {
   const setTagFilter = useLicenseFilterStore((state) => state.setTagFilter)
   const clearAllFilters = useLicenseFilterStore((state) => state.clearAllFilters)
 
-  const meta = useAppStore((state) => state.meta)
   const settings = useAppStore((state) => state.settings)
 
   const licenses = useLicenseStore((state) => state.licenses)
@@ -489,13 +488,6 @@ export function DemoPanel() {
           onClose={() => setLicenseModal({ mode: 'closed' })}
         />
       ) : null}
-
-      <p className="text-center text-xs text-muted">
-        schemaVersion: {useAppStore.getState().getVaultData().schemaVersion}
-        {meta.isDemo ? ' · демо-данные' : ''}
-        {' · '}
-        зашифрованный блоб
-      </p>
     </div>
   )
 }

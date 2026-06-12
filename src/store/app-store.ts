@@ -21,6 +21,7 @@ type AppStore = {
   setError: (error: string | null) => void
   setKeepSessionOpen: (keepSessionOpen: boolean) => void
   setSidebarSortEnabled: (sidebarSortEnabled: boolean) => void
+  setExpiringThresholdDays: (days: number) => void
   incrementChangeCount: () => void
   loadDemoSeed: () => void
   clearDemo: () => void
@@ -65,6 +66,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => ({
       settings: { ...state.settings, sidebarSortEnabled },
     }))
+    get().incrementChangeCount()
+  },
+
+  setExpiringThresholdDays: (days) => {
+    const expiringThresholdDays = Math.min(365, Math.max(1, Math.round(days)))
+    set((state) => ({
+      settings: { ...state.settings, expiringThresholdDays },
+    }))
+    useLicenseStore.getState().refreshAllStatuses()
     get().incrementChangeCount()
   },
 

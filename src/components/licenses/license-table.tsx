@@ -1,7 +1,7 @@
-import dayjs from 'dayjs'
 import { Archive, Pencil } from 'lucide-react'
 import type { License } from '../../types/license'
 import { PLATFORM_LABELS, type Platform } from '../../types/platform'
+import { formatDaysLeftLabel, formatExpiryDate, getDaysUntilExpiry } from '../../utils/dates'
 import type { SearchHighlight } from '../../utils/search'
 import { NO_CATEGORY_FILTER } from '../../store/license-filter-store'
 import { useCategoryStore } from '../../store/category-store'
@@ -27,18 +27,20 @@ type LicenseTableProps = {
   onTagClick: (tag: string) => void
 }
 
-function formatExpiry(license: License): string {
+function ExpiryTableCell({ license }: { license: License }) {
   if (license.isPerpetual) {
-    return 'Бессрочно'
+    return <span>Бессрочно</span>
   }
   if (!license.expiryDate) {
-    return '—'
+    return <span>—</span>
   }
-  return dayjs(license.expiryDate).format('DD.MM.YYYY')
-}
-
-function formatCreatedAt(value: string): string {
-  return dayjs(value).format('DD.MM.YYYY')
+  const daysLeft = getDaysUntilExpiry(license.expiryDate, license.isPerpetual)
+  return (
+    <div className="leading-snug">
+      <div>{formatExpiryDate(license.expiryDate)}</div>
+      <div className="text-[11px]">{formatDaysLeftLabel(daysLeft)}</div>
+    </div>
+  )
 }
 
 export function LicenseTable({
@@ -58,10 +60,10 @@ export function LicenseTable({
 
   return (
     <div className="rounded-xl border border-border">
-      <table className="w-full table-fixed border-collapse text-left text-sm">
+      <table className="w-full border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-border bg-surface text-xs text-muted">
-            <th className="w-10 px-3 py-2">
+            <th className="w-10 py-2 pl-3 pr-2">
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
@@ -75,13 +77,12 @@ export function LicenseTable({
                 className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
               />
             </th>
-            <th className="w-[22%] px-3 py-2 font-medium">Название</th>
-            <th className="w-[11%] px-3 py-2 font-medium">Платформа</th>
-            <th className="w-[12%] px-3 py-2 font-medium">Категория</th>
-            <th className="w-[12%] px-3 py-2 font-medium">Статус</th>
-            <th className="w-[11%] px-3 py-2 font-medium">Срок</th>
-            <th className="w-[11%] px-3 py-2 font-medium">Добавлена</th>
-            <th className="w-[9%] px-3 py-2 font-medium">Действия</th>
+            <th className="px-3 py-2 font-medium">Название</th>
+            <th className="w-[9%] whitespace-nowrap px-3 py-2 font-medium">Платформа</th>
+            <th className="w-[10%] whitespace-nowrap px-3 py-2 font-medium">Категория</th>
+            <th className="w-[10%] whitespace-nowrap px-3 py-2 font-medium">Статус</th>
+            <th className="w-[14%] whitespace-nowrap px-3 py-2 font-medium">Срок</th>
+            <th className="w-20 whitespace-nowrap px-3 py-2 font-medium">Действия</th>
           </tr>
         </thead>
         <tbody>
@@ -98,7 +99,7 @@ export function LicenseTable({
                   selected ? 'bg-accent/5' : 'bg-surface hover:bg-surface-elevated/60'
                 }`}
               >
-                <td className="px-3 py-2 align-middle">
+                <td className="py-2 pl-3 pr-2 align-middle">
                   <input
                     type="checkbox"
                     checked={selected}
@@ -107,11 +108,11 @@ export function LicenseTable({
                     className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
                   />
                 </td>
-                <td className="max-w-[200px] px-3 py-2 align-middle">
+                <td className="px-3 py-2 align-middle">
                   <button
                     type="button"
                     onClick={() => onEdit(license)}
-                    className="w-full truncate text-left font-medium hover:text-accent"
+                    className="text-left font-medium hover:text-accent"
                   >
                     {highlight?.field === 'name' ? (
                       <HighlightText
@@ -143,7 +144,7 @@ export function LicenseTable({
                   <button
                     type="button"
                     onClick={() => onPlatformClick(license.platform)}
-                    className="truncate text-accent hover:underline"
+                    className="block whitespace-normal break-words text-left text-accent hover:underline"
                   >
                     {highlight?.field === 'platform' ? (
                       <HighlightText
@@ -162,7 +163,7 @@ export function LicenseTable({
                     onClick={() =>
                       onCategoryClick(license.category ?? NO_CATEGORY_FILTER)
                     }
-                    className="text-accent hover:underline"
+                    className="block whitespace-normal break-words text-left leading-snug text-accent hover:underline"
                   >
                     {highlight?.field === 'category' ? (
                       <HighlightText
@@ -178,11 +179,8 @@ export function LicenseTable({
                 <td className="px-3 py-2 align-middle">
                   <StatusBadge status={license.status} />
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 align-middle text-xs text-muted">
-                  {formatExpiry(license)}
-                </td>
-                <td className="whitespace-nowrap px-3 py-2 align-middle text-xs text-muted">
-                  {formatCreatedAt(license.createdAt)}
+                <td className="px-3 py-2 align-middle text-xs text-muted">
+                  <ExpiryTableCell license={license} />
                 </td>
                 <td className="px-3 py-2 align-middle">
                   <div className="flex gap-1">

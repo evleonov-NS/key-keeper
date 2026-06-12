@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import type { License } from '../types/license'
 import type { LicenseStatus } from '../types/license-status'
+import { getDaysUntilExpiry } from './dates'
 
 type ComputeStatusOptions = {
   expiringThresholdDays?: number
@@ -25,12 +26,15 @@ export function computeLicenseStatus(
     return 'archived'
   }
 
-  if (license.isPerpetual || !license.expiryDate) {
+  const daysLeft = getDaysUntilExpiry(
+    license.expiryDate,
+    license.isPerpetual,
+    today,
+  )
+
+  if (daysLeft === null) {
     return 'perpetual'
   }
-
-  const expiry = dayjs(license.expiryDate).startOf('day')
-  const daysLeft = expiry.diff(today, 'day')
 
   if (daysLeft < 0) {
     return 'expired'

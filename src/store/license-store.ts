@@ -20,6 +20,7 @@ function withComputedStatus(license: License): License {
 type LicenseStore = {
   licenses: License[]
   setLicenses: (licenses: License[]) => void
+  refreshAllStatuses: () => void
   addLicense: (
     license: Omit<License, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
   ) => License
@@ -37,7 +38,14 @@ type LicenseStore = {
 export const useLicenseStore = create<LicenseStore>((set, get) => ({
   licenses: [],
 
-  setLicenses: (licenses) => set({ licenses }),
+  setLicenses: (licenses) =>
+    set({ licenses: licenses.map((license) => withComputedStatus(license)) }),
+
+  refreshAllStatuses: () => {
+    set((state) => ({
+      licenses: state.licenses.map((license) => withComputedStatus(license)),
+    }))
+  },
 
   addLicense: (partial) => {
     const now = new Date().toISOString()

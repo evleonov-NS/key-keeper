@@ -22,7 +22,10 @@ export function LicenseBulkBar({
   }
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-accent/30 bg-accent/5 px-3 py-2.5">
+    <div
+      data-testid="license-bulk-bar"
+      className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-accent/30 bg-accent/5 px-3 py-2.5"
+    >
       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
         Выбрано: {selectedCount}
       </span>

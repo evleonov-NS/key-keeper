@@ -8,6 +8,7 @@ import { NO_CATEGORY_FILTER } from '../../store/license-filter-store'
 import { useCategoryStore } from '../../store/category-store'
 import { HighlightText } from '../ui/highlight-text'
 import { PhotoGalleryModal } from './photo-gallery-modal'
+import { LicenseExpiryHint } from './license-expiry-hint'
 import { StatusBadge } from './status-badge'
 
 type LicenseCardProps = {
@@ -250,6 +251,7 @@ export function LicenseCard({
               {categoryContent}
             </button>
           </p>
+          <LicenseExpiryHint license={license} />
         </div>
         <StatusBadge status={license.status} />
       </div>

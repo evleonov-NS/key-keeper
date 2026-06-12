@@ -9,6 +9,7 @@ import { ChangePasswordModal } from './auth/change-password-modal'
 import { AuthLayout } from './auth/auth-layout'
 import { useAuthStore } from '../store/auth-store'
 import { useAutoLock } from '../hooks/use-auto-lock'
+import { useLicenseStatusRefresh } from '../hooks/use-license-status-refresh'
 import type { Theme } from '../utils/theme'
 
 type AppRootProps = {
@@ -26,6 +27,7 @@ function ViewPlaceholder({ title, stage }: { title: string; stage: string }) {
 
 function UnlockedApp({ initialTheme }: AppRootProps) {
   useAutoLock()
+  useLicenseStatusRefresh()
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [activeView, setActiveView] = useState<AppView>('licenses')
 
