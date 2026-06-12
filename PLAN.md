@@ -60,15 +60,15 @@ Base64 внутри JSON раздувает бинарные данные на ~
 
 ### Задачи
 
-- [ ] Инициализация Vite + React + TypeScript (`npm create vite`)
-- [ ] Подключение Tailwind CSS (`darkMode: 'class'`, светлая тема по умолчанию)
-- [ ] Базовая структура папок: `components/`, `store/`, `storage/`, `crypto/`, `export/`, `types/`, `utils/`
-- [ ] Системные шрифты, базовая палитра Apple-стиля, CSS-переменные для темы
-- [ ] Переключатель светлая / тёмная тема (заготовка, без бизнес-логики)
-- [ ] Корневой layout: шапка, навигация-заглушка, контентная область
-- [ ] `.gitignore` (node_modules, dist, `*.local`, `src-tauri/target`, `*.vault`)
-- [ ] Проверка `npm run dev` и `npm run build`
-- [ ] `git init` и первый коммит: `feat: каркас проекта key-keeper`
+- [x] Инициализация Vite + React + TypeScript (`npm create vite`)
+- [x] Подключение Tailwind CSS (`darkMode: 'class'`, светлая тема по умолчанию)
+- [x] Базовая структура папок: `components/`, `store/`, `storage/`, `crypto/`, `export/`, `types/`, `utils/`
+- [x] Системные шрифты, базовая палитра Apple-стиля, CSS-переменные для темы
+- [x] Переключатель светлая / тёмная тема (заготовка, без бизнес-логики)
+- [x] Корневой layout: шапка, навигация-заглушка, контентная область
+- [x] `.gitignore` (node_modules, dist, `*.local`, `src-tauri/target`, `*.vault`)
+- [x] Проверка `npm run dev` и `npm run build`
+- [x] `git init` и первый коммит: `feat: каркас проекта key-keeper`
 
 ### Результат
 
