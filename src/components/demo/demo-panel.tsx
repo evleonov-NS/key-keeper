@@ -1,47 +1,115 @@
 import { useMemo, useState } from 'react'
-import { Database, KeyRound, Plus, Sparkles, Trash2 } from 'lucide-react'
+import { Database, Plus } from 'lucide-react'
 import type { License } from '../../types/license'
+import type { LicenseStatus } from '../../types/license-status'
+import type { Platform } from '../../types/platform'
 import { useAppStore } from '../../store/app-store'
 import { useLicenseStore } from '../../store/license-store'
 import { useCategoryStore } from '../../store/category-store'
-import { useSearchStore } from '../../store/search-store'
+import { useLicenseFilterStore } from '../../store/license-filter-store'
 import { LicenseCard } from '../licenses/license-card'
 import { LicenseFormModal } from '../licenses/license-form-modal'
-import { countLicensesByStatus } from '../../utils/status'
-import { filterLicensesBySearch, isSearchActive } from '../../utils/search'
-
-type DemoPanelProps = {
-  onChangePassword: () => void
-}
+import { FilterChip } from '../ui/filter-chip'
+import {
+  filterLicenses,
+  getCategoryFilterLabel,
+  getPlatformFilterLabel,
+  hasActiveFilters,
+} from '../../utils/filter-licenses'
+import { isSearchActive } from '../../utils/search'
+import { countLicensesByStatus, STATUS_FILTER_LABELS } from '../../utils/status'
 
 type LicenseModalState =
   | { mode: 'closed' }
   | { mode: 'create' }
   | { mode: 'edit'; license: License }
 
-export function DemoPanel({ onChangePassword }: DemoPanelProps) {
+const STATUS_CARDS: Array<{
+  status: LicenseStatus
+  label: string
+  shortLabel: string
+  tone: string
+  activeRing: string
+}> = [
+  {
+    status: 'active',
+    label: 'Активные',
+    shortLabel: 'Актив.',
+    tone: 'text-green-600 dark:text-green-400',
+    activeRing: 'ring-green-500/40',
+  },
+  {
+    status: 'expiring',
+    label: 'Истекают',
+    shortLabel: 'Истек.',
+    tone: 'text-amber-600 dark:text-amber-400',
+    activeRing: 'ring-amber-500/40',
+  },
+  {
+    status: 'expired',
+    label: 'Просрочены',
+    shortLabel: 'Проср.',
+    tone: 'text-red-600 dark:text-red-400',
+    activeRing: 'ring-red-500/40',
+  },
+  {
+    status: 'perpetual',
+    label: 'Бессрочные',
+    shortLabel: 'Бесср.',
+    tone: 'text-gray-700 dark:text-gray-300',
+    activeRing: 'ring-gray-400/40',
+  },
+  {
+    status: 'archived',
+    label: 'В архиве',
+    shortLabel: 'Архив',
+    tone: 'text-gray-500 dark:text-gray-500',
+    activeRing: 'ring-gray-400/30',
+  },
+]
+
+export function DemoPanel() {
   const [licenseModal, setLicenseModal] = useState<LicenseModalState>({
     mode: 'closed',
   })
 
-  const searchQuery = useSearchStore((state) => state.query)
-  const clearQuery = useSearchStore((state) => state.clearQuery)
+  const query = useLicenseFilterStore((state) => state.query)
+  const categoryFilter = useLicenseFilterStore((state) => state.categoryId)
+  const platformFilter = useLicenseFilterStore((state) => state.platform)
+  const statusFilter = useLicenseFilterStore((state) => state.status)
+  const setCategoryFilter = useLicenseFilterStore((state) => state.setCategoryFilter)
+  const clearCategoryFilter = useLicenseFilterStore((state) => state.clearCategoryFilter)
+  const setPlatformFilter = useLicenseFilterStore((state) => state.setPlatformFilter)
+  const clearPlatformFilter = useLicenseFilterStore((state) => state.clearPlatformFilter)
+  const setStatusFilter = useLicenseFilterStore((state) => state.setStatusFilter)
+  const clearStatusFilter = useLicenseFilterStore((state) => state.clearStatusFilter)
 
   const meta = useAppStore((state) => state.meta)
   const settings = useAppStore((state) => state.settings)
-  const loadDemoSeed = useAppStore((state) => state.loadDemoSeed)
-  const clearDemo = useAppStore((state) => state.clearDemo)
 
   const licenses = useLicenseStore((state) => state.licenses)
   const archiveLicense = useLicenseStore((state) => state.archiveLicense)
-  const hasDemoLicenses = useLicenseStore((state) =>
-    state.licenses.some((license) => license.isDemo),
-  )
   const categories = useCategoryStore((state) => state.categories)
 
-  const searchResults = useMemo(
-    () => filterLicensesBySearch(licenses, searchQuery),
-    [licenses, searchQuery],
+  const filters = useMemo(
+    () => ({
+      query,
+      categoryId: categoryFilter,
+      platform: platformFilter,
+      status: statusFilter,
+    }),
+    [query, categoryFilter, platformFilter, statusFilter],
+  )
+
+  const filteredResults = useMemo(
+    () =>
+      filterLicenses(
+        licenses,
+        filters,
+        categories,
+        settings.expiringThresholdDays,
+      ),
+    [licenses, filters, categories, settings.expiringThresholdDays],
   )
 
   const statusCounts = countLicensesByStatus(
@@ -49,18 +117,8 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
     settings.expiringThresholdDays,
   )
 
-  const handleClearDemo = () => {
-    if (
-      window.confirm(
-        'Удалить все демо-записи и категории? Реальные записи не затронуты.',
-      )
-    ) {
-      clearDemo()
-      clearQuery()
-    }
-  }
-
-  const searchActive = isSearchActive(searchQuery)
+  const filtersActive = hasActiveFilters(filters)
+  const searchActive = isSearchActive(query)
 
   const handleArchive = (license: License) => {
     if (
@@ -72,84 +130,120 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
     }
   }
 
+  const handleCategoryClick = (categoryId: string) => {
+    if (categoryFilter === categoryId) {
+      clearCategoryFilter()
+      return
+    }
+    setCategoryFilter(categoryId)
+  }
+
+  const handlePlatformClick = (platform: Platform) => {
+    if (platformFilter === platform) {
+      clearPlatformFilter()
+      return
+    }
+    setPlatformFilter(platform)
+  }
+
+  const handleStatusCardClick = (status: LicenseStatus) => {
+    if (statusFilter === status) {
+      clearStatusFilter()
+      return
+    }
+    setStatusFilter(status)
+  }
+
+  const emptyMessage = () => {
+    if (searchActive) {
+      return `Ничего не найдено по запросу «${query.trim()}».`
+    }
+    if (categoryFilter !== null) {
+      return `Нет лицензий в категории «${getCategoryFilterLabel(categoryFilter, categories)}».`
+    }
+    if (platformFilter !== null) {
+      return `Нет лицензий для платформы «${getPlatformFilterLabel(platformFilter)}».`
+    }
+    if (statusFilter !== null) {
+      return `Нет лицензий со статусом «${STATUS_FILTER_LABELS[statusFilter]}».`
+    }
+    return null
+  }
+
   return (
     <div className="space-y-6">
       <section className="fade-in rounded-card border border-border bg-surface-elevated p-6 shadow-card sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Добро пожаловать
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-              Данные зашифрованы и сохранены в IndexedDB. Поиск — в боковом
-              меню. Попробуйте{' '}
-              <code className="rounded bg-surface px-1 py-0.5 text-xs">ьшс</code>{' '}
-              в русской раскладке.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={onChangePassword}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-elevated"
-            >
-              <KeyRound size={16} />
-              Сменить пароль
-            </button>
-
-            {!hasDemoLicenses ? (
-              <button
-                type="button"
-                onClick={() => loadDemoSeed()}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-elevated"
-              >
-                <Sparkles size={16} />
-                Загрузить демо
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleClearDemo}
-                className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/70"
-              >
-                <Trash2 size={16} />
-                Очистить демо
-              </button>
-            )}
-          </div>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Панель лицензий
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+            Активные лицензии, подписки и ключи с контролем сроков действия.
+          </p>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {[
-            { label: 'Активные', value: statusCounts.active, tone: 'text-green-600 dark:text-green-400' },
-            { label: 'Истекают', value: statusCounts.expiring, tone: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Просрочены', value: statusCounts.expired, tone: 'text-red-600 dark:text-red-400' },
-            { label: 'Бессрочные', value: statusCounts.perpetual, tone: 'text-gray-700 dark:text-gray-300' },
-            { label: 'В архиве', value: statusCounts.archived, tone: 'text-gray-500 dark:text-gray-500' },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className="rounded-xl border border-border bg-surface px-4 py-3"
-            >
-              <p className="text-xs text-muted">{card.label}</p>
-              <p className={`mt-1 text-xl font-semibold ${card.tone}`}>
-                {card.value}
-              </p>
-            </div>
-          ))}
+        <div className="mt-6 grid grid-cols-5 gap-1.5 sm:gap-3">
+          {STATUS_CARDS.map((card) => {
+            const isActive = statusFilter === card.status
+            return (
+              <button
+                key={card.status}
+                type="button"
+                onClick={() => handleStatusCardClick(card.status)}
+                title={card.label}
+                className={`flex aspect-square min-w-0 flex-col items-center justify-center rounded-xl border border-border bg-surface p-1 text-center transition-all duration-theme hover:shadow-card sm:aspect-auto sm:items-start sm:px-4 sm:py-3 sm:text-left ${
+                  isActive ? `ring-2 ${card.activeRing}` : ''
+                }`}
+              >
+                <p className="text-[9px] leading-tight text-muted sm:hidden">
+                  {card.shortLabel}
+                </p>
+                <p className="hidden text-xs text-muted sm:block">{card.label}</p>
+                <p
+                  className={`text-base font-semibold leading-none sm:mt-1 sm:text-xl ${card.tone}`}
+                >
+                  {statusCounts[card.status]}
+                </p>
+              </button>
+            )
+          })}
         </div>
       </section>
 
       <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Database size={18} className="text-accent" />
-            <h2 className="text-lg font-semibold">
-              Лицензии (
-              {searchActive ? `${searchResults.length} из ${licenses.length}` : licenses.length}
-              )
-            </h2>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Database size={18} className="text-accent" />
+              <h2 className="text-lg font-semibold">
+                Лицензии (
+                {filtersActive
+                  ? `${filteredResults.length} из ${licenses.length}`
+                  : licenses.length}
+                )
+              </h2>
+            </div>
+
+            {categoryFilter !== null ? (
+              <FilterChip
+                label={`Фильтр: ${getCategoryFilterLabel(categoryFilter, categories)}`}
+                onClear={clearCategoryFilter}
+              />
+            ) : null}
+
+            {platformFilter !== null ? (
+              <FilterChip
+                label={`Платформа: ${getPlatformFilterLabel(platformFilter)}`}
+                onClear={clearPlatformFilter}
+              />
+            ) : null}
+
+            {statusFilter !== null ? (
+              <FilterChip
+                label={`Фильтр: ${STATUS_FILTER_LABELS[statusFilter]}`}
+                onClear={clearStatusFilter}
+              />
+            ) : null}
           </div>
 
           <button
@@ -164,21 +258,21 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
 
         {licenses.length === 0 ? (
           <p className="text-sm text-muted">
-            Хранилище пустое. Нажмите «Добавить» или «Загрузить демо».
+            Хранилище пустое. Нажмите «Добавить» или загрузите демо в настройках.
           </p>
-        ) : searchActive && searchResults.length === 0 ? (
-          <p className="text-sm text-muted">
-            Ничего не найдено по запросу «{searchQuery.trim()}».
-          </p>
+        ) : filteredResults.length === 0 ? (
+          <p className="text-sm text-muted">{emptyMessage()}</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {searchResults.map(({ license, highlight }) => (
+            {filteredResults.map(({ license, highlight }) => (
               <LicenseCard
                 key={license.id}
                 license={license}
                 highlight={highlight}
                 onEdit={(item) => setLicenseModal({ mode: 'edit', license: item })}
                 onArchive={handleArchive}
+                onCategoryClick={handleCategoryClick}
+                onPlatformClick={handlePlatformClick}
               />
             ))}
           </div>
@@ -201,9 +295,6 @@ export function DemoPanel({ onChangePassword }: DemoPanelProps) {
       ) : null}
 
       <p className="text-center text-xs text-muted">
-        Категории: {categories.map((category) => category.name).join(', ') ||
-          '—'}
-        {' · '}
         schemaVersion: {useAppStore.getState().getVaultData().schemaVersion}
         {meta.isDemo ? ' · демо-данные' : ''}
         {' · '}

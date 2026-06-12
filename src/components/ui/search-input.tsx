@@ -16,40 +16,45 @@ export function SearchInput({
   compact = false,
 }: SearchInputProps) {
   return (
-    <div className="relative">
-      <Search
-        size={compact ? 14 : 16}
-        className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
-      />
-      <input
-        type="text"
-        inputMode="search"
-        enterKeyHint="search"
-        role="searchbox"
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck={false}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className={`search-input w-full rounded-xl border border-border bg-surface text-sm outline-none transition-shadow focus:border-accent focus:ring-2 focus:ring-accent/20 ${
-          compact ? 'py-2 pl-8 pr-8 text-xs' : 'py-2.5 pl-9 pr-9'
+    <div>
+      <div
+        className={`grid w-full items-center rounded-xl border border-border bg-surface transition-shadow focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 ${
+          compact ? 'text-xs' : 'text-sm'
         }`}
-        aria-label="Поиск лицензий"
-      />
-      {value ? (
-        <button
-          type="button"
-          onClick={() => onChange('')}
-          aria-label="Очистить поиск"
-          className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface-elevated text-muted shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-        >
-          <X size={12} strokeWidth={2.5} />
-        </button>
-      ) : null}
+      >
+        <Search
+          size={compact ? 14 : 16}
+          className="pointer-events-none col-start-1 row-start-1 ml-2.5 text-muted"
+        />
+        <input
+          type="text"
+          enterKeyHint="search"
+          role="searchbox"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className={`search-input col-start-1 row-start-1 w-full border-0 bg-transparent outline-none ring-0 focus:ring-0 ${
+            compact ? 'py-2 pl-8 pr-8' : 'py-2.5 pl-9 pr-9'
+          }`}
+          aria-label="Поиск лицензий"
+        />
+        {value ? (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            aria-label="Очистить поиск"
+            className="col-start-1 row-start-1 mr-2 justify-self-end rounded-md p-1 text-muted transition-colors hover:bg-surface-elevated hover:text-gray-700 dark:hover:text-gray-200"
+          >
+            <X size={compact ? 14 : 16} strokeWidth={2} />
+          </button>
+        ) : null}
+      </div>
       <p className={`mt-1.5 text-muted ${compact ? 'text-[10px] leading-snug' : 'text-xs'}`}>
-        от {MIN_SEARCH_LENGTH} символов · RU/EN
+        от {MIN_SEARCH_LENGTH} символов · RU/EN · категории · теги
       </p>
     </div>
   )

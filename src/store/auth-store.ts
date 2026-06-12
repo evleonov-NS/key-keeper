@@ -16,7 +16,7 @@ import {
   startVaultPersistence,
   stopVaultPersistence,
 } from '../storage/vault-persistence'
-import { useSearchStore } from './search-store'
+import { useLicenseFilterStore } from './license-filter-store'
 import { useAppStore } from './app-store'
 import { DEFAULT_APP_SETTINGS, SCHEMA_VERSION, type VaultData } from '../types'
 
@@ -128,7 +128,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     clearSessionKey()
     clearTabSession()
     useAppStore.getState().resetStores()
-    useSearchStore.getState().clearQuery()
+    useLicenseFilterStore.getState().clearAllFilters()
     set({ phase: 'locked', authError: null })
   },
 

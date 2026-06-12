@@ -1,3 +1,4 @@
+import type { Category } from '../types/category'
 import type { License } from '../types/license'
 
 /** Минимальная длина запроса для фильтрации списка */
@@ -9,6 +10,8 @@ export const SEARCHABLE_FIELDS = [
   'licenseKey',
   'accountLogin',
   'comment',
+  'category',
+  'tags',
 ] as const
 
 export type SearchableField = (typeof SEARCHABLE_FIELDS)[number]
@@ -165,20 +168,36 @@ function findMatchInField(
   return { field, ...highlight }
 }
 
+function resolveCategoryName(
+  license: License,
+  categories: Category[],
+): string {
+  if (!license.category) {
+    return ''
+  }
+  return categories.find((category) => category.id === license.category)?.name ?? ''
+}
+
 export function findLicenseSearchMatch(
   license: License,
   query: string,
+  categories: Category[] = [],
 ): SearchHighlight | null {
   const queryVariants = expandSearchQuery(query)
   if (queryVariants.every((variant) => variant.length < MIN_SEARCH_LENGTH)) {
     return null
   }
 
+  const categoryName = resolveCategoryName(license, categories)
+  const tagsText = license.tags.join(' ')
+
   const fields: Array<[SearchableField, string]> = [
     ['name', license.name],
     ['licenseKey', license.licenseKey],
     ['accountLogin', license.accountLogin],
     ['comment', license.comment],
+    ['category', categoryName],
+    ['tags', tagsText],
   ]
 
   for (const [field, value] of fields) {
@@ -198,6 +217,7 @@ export function findLicenseSearchMatch(
 export function filterLicensesBySearch(
   licenses: License[],
   query: string,
+  categories: Category[] = [],
 ): LicenseSearchResult[] {
   const trimmed = query.trim()
 
@@ -208,7 +228,7 @@ export function filterLicensesBySearch(
   return licenses
     .map((license) => ({
       license,
-      highlight: findLicenseSearchMatch(license, trimmed),
+      highlight: findLicenseSearchMatch(license, trimmed, categories),
     }))
     .filter((item) => item.highlight !== null)
 }

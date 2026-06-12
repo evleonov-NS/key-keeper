@@ -19,15 +19,16 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   setCategories: (categories) => set({ categories }),
 
   addCategory: (name, isDemo = false) => {
-    const category: Category = { id: generateId(), name, isDemo }
+    const category: Category = { id: generateId(), name: name.trim(), isDemo }
     set((state) => ({ categories: [...state.categories, category] }))
     return category
   },
 
   updateCategory: (id, name) => {
+    const trimmed = name.trim()
     set((state) => ({
       categories: state.categories.map((category) =>
-        category.id === id ? { ...category, name } : category,
+        category.id === id ? { ...category, name: trimmed } : category,
       ),
     }))
   },

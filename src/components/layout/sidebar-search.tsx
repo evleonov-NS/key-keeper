@@ -1,9 +1,9 @@
 import { SearchInput } from '../ui/search-input'
-import { useSearchStore } from '../../store/search-store'
+import { useLicenseFilterStore } from '../../store/license-filter-store'
 
 export function SidebarSearch() {
-  const query = useSearchStore((state) => state.query)
-  const setQuery = useSearchStore((state) => state.setQuery)
+  const query = useLicenseFilterStore((state) => state.query)
+  const setQuery = useLicenseFilterStore((state) => state.setQuery)
 
   return (
     <div className="mt-4 border-t border-border pt-4">
@@ -14,7 +14,7 @@ export function SidebarSearch() {
         compact
         value={query}
         onChange={setQuery}
-        placeholder="Название, ключ…"
+        placeholder="Название, тег, категория…"
       />
     </div>
   )

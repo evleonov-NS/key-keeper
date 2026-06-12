@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, type MouseEvent, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 
 type ModalProps = {
@@ -9,8 +9,28 @@ type ModalProps = {
 }
 
 export function Modal({ title, children, onClose, wide = false }: ModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  const handleBackdropClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose()
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 backdrop-blur-sm sm:items-center">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 backdrop-blur-sm sm:items-center"
+      onClick={handleBackdropClick}
+    >
       <div
         role="dialog"
         aria-modal="true"

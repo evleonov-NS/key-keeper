@@ -1,5 +1,5 @@
 export { useAppStore } from './app-store'
 export { useLicenseStore } from './license-store'
 export { useCategoryStore } from './category-store'
-export { useSearchStore } from './search-store'
+export { useLicenseFilterStore, NO_CATEGORY_FILTER } from './license-filter-store'
 export { useAuthStore, type AuthPhase } from './auth-store'

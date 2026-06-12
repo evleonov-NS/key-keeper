@@ -43,6 +43,14 @@ export function computeLicenseStatus(
   return 'active'
 }
 
+export const STATUS_FILTER_LABELS: Record<LicenseStatus, string> = {
+  active: 'Активные',
+  expiring: 'Истекают',
+  expired: 'Просрочены',
+  perpetual: 'Бессрочные',
+  archived: 'В архиве',
+}
+
 export function countLicensesByStatus(
   licenses: License[],
   expiringThresholdDays = 14,

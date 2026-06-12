@@ -3,27 +3,36 @@ import { KeyRound } from 'lucide-react'
 import { SessionControls } from '../auth/session-controls'
 import { ThemeToggle } from '../ui/theme-toggle'
 import { AppFooter } from './app-footer'
+import { SidebarCategories } from './sidebar-categories'
 import { SidebarSearch } from './sidebar-search'
 import type { Theme } from '../../utils/theme'
 
+export type AppView = 'dashboard' | 'licenses' | 'categories' | 'settings'
+
 type NavItem = {
-  id: string
+  id: AppView
   label: string
 }
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Дашборд' },
   { id: 'licenses', label: 'Лицензии' },
-  { id: 'categories', label: 'Категории' },
   { id: 'settings', label: 'Настройки' },
 ]
 
 type AppLayoutProps = {
   children: ReactNode
   initialTheme: Theme
+  activeView: AppView
+  onNavigate: (view: AppView) => void
 }
 
-export function AppLayout({ children, initialTheme }: AppLayoutProps) {
+export function AppLayout({
+  children,
+  initialTheme,
+  activeView,
+  onNavigate,
+}: AppLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-surface-elevated/80 backdrop-blur-md">
@@ -52,19 +61,29 @@ export function AppLayout({ children, initialTheme }: AppLayoutProps) {
         >
           <nav aria-label="Основная навигация">
             <ul className="flex gap-1 overflow-x-auto sm:flex-col sm:overflow-visible">
-              {NAV_ITEMS.map((item) => (
-                <li key={item.id} className="shrink-0 sm:shrink">
-                  <button
-                    type="button"
-                    className="whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm text-gray-600 transition-colors duration-theme hover:bg-surface-elevated hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white sm:w-full"
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const isActive = activeView === item.id
+                return (
+                  <li key={item.id} className="shrink-0 sm:shrink">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate(item.id)}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={`whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm transition-colors duration-theme sm:w-full ${
+                        isActive
+                          ? 'bg-accent/10 font-medium text-accent'
+                          : 'text-gray-600 hover:bg-surface-elevated hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           </nav>
 
+          <SidebarCategories onNavigate={onNavigate} />
           <SidebarSearch />
         </aside>
 

@@ -15,11 +15,12 @@ export async function exportVaultKey(key: CryptoKey): Promise<JsonWebKey> {
 }
 
 export async function importVaultKey(jwk: JsonWebKey): Promise<CryptoKey> {
+  // extractable: true — нужно для продления сессии вкладки (touchTabSession / saveTabSession)
   return crypto.subtle.importKey(
     'jwk',
     jwk,
     { name: 'AES-GCM', length: 256 },
-    false,
+    true,
     ['encrypt', 'decrypt'],
   )
 }
