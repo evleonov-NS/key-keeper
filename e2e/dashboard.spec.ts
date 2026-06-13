@@ -13,13 +13,18 @@ test.describe('Дашборд', () => {
     await expect(page.getByTitle('Просрочены: перейти к списку')).toContainText('1')
   })
 
-  test('блок «Истекает скоро» показывает JetBrains', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Истекает скоро' })).toBeVisible()
+  test('блок «Требуют внимания» показывает JetBrains и 1Password', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'Требуют внимания' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'JetBrains All Products' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '1Password Families' })).toBeVisible()
   })
 
   test('счётчик в заголовке вкладки', async ({ page }) => {
-    await expect(page).toHaveTitle(/\(1\) key-keeper/)
+    await expect(page).toHaveTitle(/\(2\) key-keeper/)
+  })
+
+  test('блок в сайдбаре «Требуют внимания»', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /Требуют внимания/ })).toBeVisible()
   })
 
   test('переход к лицензии по кнопке «Открыть»', async ({ page }) => {

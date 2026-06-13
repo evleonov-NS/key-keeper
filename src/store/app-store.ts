@@ -22,6 +22,7 @@ type AppStore = {
   setKeepSessionOpen: (keepSessionOpen: boolean) => void
   setSidebarSortEnabled: (sidebarSortEnabled: boolean) => void
   setExpiringThresholdDays: (days: number) => void
+  setNotificationsEnabled: (notificationsEnabled: boolean) => void
   incrementChangeCount: () => void
   loadDemoSeed: () => void
   clearDemo: () => void
@@ -76,6 +77,22 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }))
     useLicenseStore.getState().refreshAllStatuses()
     get().incrementChangeCount()
+  },
+
+  setNotificationsEnabled: (notificationsEnabled) => {
+    set((state) => ({
+      settings: { ...state.settings, notificationsEnabled },
+    }))
+    get().incrementChangeCount()
+
+    if (
+      notificationsEnabled &&
+      typeof window !== 'undefined' &&
+      'Notification' in window &&
+      Notification.permission === 'default'
+    ) {
+      void Notification.requestPermission()
+    }
   },
 
   incrementChangeCount: () =>

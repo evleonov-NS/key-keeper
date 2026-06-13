@@ -18,6 +18,7 @@ import {
 } from '../storage/vault-persistence'
 import { useLicenseFilterStore } from './license-filter-store'
 import { useAppStore } from './app-store'
+import { clearNotificationSessionFlag } from '../utils/reminders'
 import { DEFAULT_APP_SETTINGS, SCHEMA_VERSION, type VaultData } from '../types'
 
 export type AuthPhase = 'checking' | 'setup' | 'locked' | 'unlocked'
@@ -127,6 +128,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     stopVaultPersistence()
     clearSessionKey()
     clearTabSession()
+    clearNotificationSessionFlag()
     useAppStore.getState().resetStores()
     useLicenseFilterStore.getState().clearAllFilters()
     set({ phase: 'locked', authError: null })

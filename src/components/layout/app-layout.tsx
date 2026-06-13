@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
 import { KeyRound } from 'lucide-react'
+import type { License } from '../../types/license'
 import { SessionControls } from '../auth/session-controls'
 import { ThemeToggle } from '../ui/theme-toggle'
 import { AppFooter } from './app-footer'
+import { SidebarAttention } from './sidebar-attention'
 import { SidebarCategories } from './sidebar-categories'
 import { SidebarSort } from './sidebar-sort'
 import type { Theme } from '../../utils/theme'
@@ -24,14 +26,18 @@ type AppLayoutProps = {
   children: ReactNode
   initialTheme: Theme
   activeView: AppView
+  attentionCount: number
   onNavigate: (view: AppView) => void
+  onOpenLicense: (license: License) => void
 }
 
 export function AppLayout({
   children,
   initialTheme,
   activeView,
+  attentionCount,
   onNavigate,
+  onOpenLicense,
 }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
@@ -63,19 +69,26 @@ export function AppLayout({
             <ul className="flex gap-1 overflow-x-auto sm:flex-col sm:overflow-visible">
               {NAV_ITEMS.map((item) => {
                 const isActive = activeView === item.id
+                const showAttentionBadge =
+                  item.id === 'dashboard' && attentionCount > 0
                 return (
                   <li key={item.id} className="shrink-0 sm:shrink">
                     <button
                       type="button"
                       onClick={() => onNavigate(item.id)}
                       aria-current={isActive ? 'page' : undefined}
-                      className={`whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm transition-colors duration-theme sm:w-full ${
+                      className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm transition-colors duration-theme sm:w-full ${
                         isActive
                           ? 'bg-accent/10 font-medium text-accent'
                           : 'text-gray-600 hover:bg-surface-elevated hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
                       }`}
                     >
-                      {item.label}
+                      <span>{item.label}</span>
+                      {showAttentionBadge ? (
+                        <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                          {attentionCount}
+                        </span>
+                      ) : null}
                     </button>
                   </li>
                 )
@@ -83,6 +96,10 @@ export function AppLayout({
             </ul>
           </nav>
 
+          <SidebarAttention
+            onNavigate={onNavigate}
+            onOpenLicense={onOpenLicense}
+          />
           <SidebarCategories onNavigate={onNavigate} />
           <SidebarSort />
         </aside>

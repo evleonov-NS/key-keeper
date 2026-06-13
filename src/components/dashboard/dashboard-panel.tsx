@@ -5,10 +5,10 @@ import type { LicenseStatus } from '../../types/license-status'
 import { DASHBOARD_STATUS_CARDS } from '../../constants/license-status-cards'
 import { useAppStore } from '../../store/app-store'
 import { useLicenseStore } from '../../store/license-store'
-import { countExpiringLicenses, getExpiringSoonLicenses } from '../../utils/dashboard'
+import { countAttentionLicenses, getAttentionLicenses } from '../../utils/reminders'
 import { countLicensesByStatus } from '../../utils/status'
+import { AttentionList } from './attention-list'
 import { DashboardStatCard } from './dashboard-stat-card'
-import { ExpiringSoonList } from './expiring-soon-list'
 
 type DashboardPanelProps = {
   onFilterByStatus: (status: LicenseStatus) => void
@@ -29,12 +29,12 @@ export function DashboardPanel({
     [licenses, expiringThresholdDays],
   )
 
-  const expiringSoon = useMemo(
-    () => getExpiringSoonLicenses(licenses, expiringThresholdDays),
+  const attention = useMemo(
+    () => getAttentionLicenses(licenses, expiringThresholdDays),
     [licenses, expiringThresholdDays],
   )
 
-  const expiringCount = countExpiringLicenses(licenses, expiringThresholdDays)
+  const attentionCount = countAttentionLicenses(licenses, expiringThresholdDays)
 
   return (
     <div className="space-y-6">
@@ -45,10 +45,10 @@ export function DashboardPanel({
             <h1 className="text-2xl font-semibold tracking-tight">Дашборд</h1>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
               Сводка по лицензиям: что активно, что скоро истекает и что просрочено.
-              {expiringCount > 0 ? (
+              {attentionCount > 0 ? (
                 <span className="text-amber-700 dark:text-amber-400">
                   {' '}
-                  Истекает скоро: {expiringCount}.
+                  Требуют внимания: {attentionCount}.
                 </span>
               ) : null}
             </p>
@@ -69,16 +69,13 @@ export function DashboardPanel({
       </section>
 
       <section className="fade-in rounded-card border border-border bg-surface-elevated p-6 shadow-card sm:p-8">
-        <h2 className="text-lg font-semibold">Истекает скоро</h2>
+        <h2 className="text-lg font-semibold">Требуют внимания</h2>
         <p className="mt-1 text-sm text-muted">
-          Лицензии в пределах порога «истекает» — отсортированы по сроку.
+          Истекающие и просроченные лицензии с включённым напоминанием — по срочности.
         </p>
 
         <div className="mt-4">
-          <ExpiringSoonList
-            licenses={expiringSoon}
-            onOpenLicense={onOpenLicense}
-          />
+          <AttentionList licenses={attention} onOpenLicense={onOpenLicense} />
         </div>
       </section>
     </div>

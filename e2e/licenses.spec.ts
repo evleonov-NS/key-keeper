@@ -36,6 +36,24 @@ test.describe('Лицензии', () => {
 
     await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByRole('columnheader', { name: 'Название' })).toBeVisible()
+    await expect(page.getByRole('columnheader', { name: 'Логин / ключ' })).toBeVisible()
+  })
+
+  test('копирование ключа в табличном виде', async ({ page }) => {
+    await page.getByRole('button', { name: 'Таблица' }).click()
+
+    await page
+      .getByRole('row')
+      .filter({ hasText: 'Microsoft 365' })
+      .getByRole('button', { name: /Скопировать ключ «Microsoft 365»/ })
+      .click()
+
+    await expect(
+      page
+        .getByRole('row')
+        .filter({ hasText: 'Microsoft 365' })
+        .getByRole('button', { name: /Скопировать ключ «Microsoft 365»/ }),
+    ).toContainText('Скопирован')
   })
 
   test('массовый выбор и панель действий', async ({ page }) => {

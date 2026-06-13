@@ -15,7 +15,8 @@ import { useLicenseFilterStore } from '../store/license-filter-store'
 import { useAutoLock } from '../hooks/use-auto-lock'
 import { useLicenseStatusRefresh } from '../hooks/use-license-status-refresh'
 import { useDocumentTitle } from '../hooks/use-document-title'
-import { countExpiringLicenses } from '../utils/dashboard'
+import { useLicenseNotifications } from '../hooks/use-license-notifications'
+import { countAttentionLicenses } from '../utils/reminders'
 import type { License } from '../types/license'
 import type { LicenseStatus } from '../types/license-status'
 import type { LicensesNavigationIntent } from '../types/navigation'
@@ -30,13 +31,20 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
   useLicenseStatusRefresh()
 
   const licenses = useLicenseStore((state) => state.licenses)
-  const expiringThresholdDays = useAppStore(
-    (state) => state.settings.expiringThresholdDays,
-  )
+  const settings = useAppStore((state) => state.settings)
   const setStatusFilter = useLicenseFilterStore((state) => state.setStatusFilter)
 
-  const expiringCount = countExpiringLicenses(licenses, expiringThresholdDays)
-  useDocumentTitle(expiringCount)
+  const attentionCount = countAttentionLicenses(
+    licenses,
+    settings.expiringThresholdDays,
+  )
+  useDocumentTitle(attentionCount)
+  useLicenseNotifications({
+    licenses,
+    expiringThresholdDays: settings.expiringThresholdDays,
+    notificationsEnabled: settings.notificationsEnabled,
+    isUnlocked: true,
+  })
 
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [activeView, setActiveView] = useState<AppView>('dashboard')
@@ -59,7 +67,9 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
       <AppLayout
         initialTheme={initialTheme}
         activeView={activeView}
+        attentionCount={attentionCount}
         onNavigate={setActiveView}
+        onOpenLicense={navigateToLicense}
       >
         {activeView === 'dashboard' ? (
           <DashboardPanel

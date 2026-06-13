@@ -2,20 +2,20 @@ import { AlertTriangle } from 'lucide-react'
 import type { License } from '../../types/license'
 import { ExpiringSoonItem } from './expiring-soon-item'
 
-type ExpiringSoonListProps = {
+type AttentionListProps = {
   licenses: License[]
   onOpenLicense: (license: License) => void
 }
 
-export function ExpiringSoonList({
-  licenses,
-  onOpenLicense,
-}: ExpiringSoonListProps) {
+export function AttentionList({ licenses, onOpenLicense }: AttentionListProps) {
   if (licenses.length === 0) {
     return (
       <div className="fade-in rounded-xl border border-dashed border-border bg-surface px-4 py-8 text-center">
         <p className="text-sm text-muted">
-          Нет лицензий, которые истекают в ближайшие дни.
+          Нет лицензий, которые требуют внимания.
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          Учитываются только записи с включённым напоминанием.
         </p>
       </div>
     )

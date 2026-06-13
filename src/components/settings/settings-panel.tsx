@@ -15,6 +15,9 @@ export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
   const setExpiringThresholdDays = useAppStore(
     (state) => state.setExpiringThresholdDays,
   )
+  const setNotificationsEnabled = useAppStore(
+    (state) => state.setNotificationsEnabled,
+  )
   const hasDemoLicenses = useLicenseStore((state) =>
     state.licenses.some((license) => license.isDemo),
   )
@@ -96,6 +99,30 @@ export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
             Сортировка в боковом меню
             <span className="mt-0.5 block text-xs text-muted">
               Поле «Название / срок / платформа…» под категориями
+            </span>
+          </span>
+        </label>
+      </section>
+
+      <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
+        <h2 className="mb-2 text-lg font-semibold">Напоминания</h2>
+        <p className="mb-4 text-sm text-muted">
+          Уведомления о лицензиях с включённым флагом «Напоминать». Записи с
+          выключенным напоминанием не попадают в список «Требуют внимания».
+        </p>
+        <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:bg-surface-elevated">
+          <input
+            type="checkbox"
+            checked={settings.notificationsEnabled}
+            onChange={(event) =>
+              setNotificationsEnabled(event.target.checked)
+            }
+            className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+          />
+          <span className="text-sm">
+            Уведомления браузера при открытии
+            <span className="mt-0.5 block text-xs text-muted">
+              Локально, без сетевых запросов. Браузер запросит разрешение.
             </span>
           </span>
         </label>

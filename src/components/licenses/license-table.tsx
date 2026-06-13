@@ -6,6 +6,7 @@ import type { SearchHighlight } from '../../utils/search'
 import { NO_CATEGORY_FILTER } from '../../store/license-filter-store'
 import { useCategoryStore } from '../../store/category-store'
 import { HighlightText } from '../ui/highlight-text'
+import { LicenseTableCredentialsCell } from './license-table-credentials-cell'
 import { StatusBadge } from './status-badge'
 
 type LicenseTableRow = {
@@ -82,6 +83,7 @@ export function LicenseTable({
             <th className="w-[10%] whitespace-nowrap px-3 py-2 font-medium">Категория</th>
             <th className="w-[10%] whitespace-nowrap px-3 py-2 font-medium">Статус</th>
             <th className="w-[14%] whitespace-nowrap px-3 py-2 font-medium">Срок</th>
+            <th className="whitespace-nowrap px-3 py-2 font-medium">Логин / ключ</th>
             <th className="w-20 whitespace-nowrap px-3 py-2 font-medium">Действия</th>
           </tr>
         </thead>
@@ -181,6 +183,12 @@ export function LicenseTable({
                 </td>
                 <td className="px-3 py-2 align-middle text-xs text-muted">
                   <ExpiryTableCell license={license} />
+                </td>
+                <td className="px-3 py-2 align-middle">
+                  <LicenseTableCredentialsCell
+                    license={license}
+                    highlight={highlight}
+                  />
                 </td>
                 <td className="px-3 py-2 align-middle">
                   <div className="flex gap-1">
