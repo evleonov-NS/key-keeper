@@ -14,7 +14,7 @@ test.describe('Аутентификация', () => {
   test('создание хранилища с мастер-паролем', async ({ page }) => {
     await setupVault(page)
 
-    await expect(page.getByRole('heading', { name: /Лицензии \(0\)/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Дашборд' })).toBeVisible()
   })
 
   test('разблокировка после блокировки', async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe('Аутентификация', () => {
     await page.getByRole('button', { name: 'Заблокировать' }).click()
     await unlockVault(page)
 
-    await expect(page.getByRole('heading', { name: 'Панель лицензий' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Дашборд' })).toBeVisible()
   })
 
   test('неверный пароль показывает ошибку', async ({ page }) => {
@@ -43,6 +43,6 @@ test.describe('Аутентификация', () => {
     await page.reload()
 
     await unlockVault(page, TEST_MASTER_PASSWORD)
-    await expect(page.getByRole('heading', { name: /Лицензии \(0\)/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Дашборд' })).toBeVisible()
   })
 })

@@ -33,15 +33,15 @@ export async function setupVault(
   await page.getByRole('button', { name: 'Создать хранилище' }).click()
 
   await expect(
-    page.getByRole('heading', { name: 'Панель лицензий' }),
+    page.getByRole('heading', { name: 'Дашборд' }),
   ).toBeVisible({ timeout: 60_000 })
 }
 
 export async function loadDemoData(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Настройки' }).click()
   await page.getByRole('button', { name: 'Загрузить демо' }).click()
-  await page.getByRole('button', { name: 'Лицензии' }).click()
-  await expect(page.getByRole('heading', { name: /Лицензии \(7\)/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Дашборд' }).click()
+  await expect(page.getByRole('heading', { name: 'Дашборд' })).toBeVisible()
 }
 
 export async function unlockVault(
@@ -54,6 +54,6 @@ export async function unlockVault(
   await page.locator('#login-password').fill(password)
   await page.getByRole('button', { name: 'Разблокировать' }).click()
   await expect(
-    page.getByRole('heading', { name: 'Панель лицензий' }),
+    page.getByRole('heading', { name: 'Дашборд' }),
   ).toBeVisible({ timeout: 60_000 })
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AppLayout, type AppView } from './layout/app-layout'
 import { CategoryPanel } from './categories/category-panel'
+import { DashboardPanel } from './dashboard/dashboard-panel'
 import { DemoPanel } from './demo/demo-panel'
 import { SettingsPanel } from './settings/settings-panel'
 import { SetupPassword } from './auth/setup-password'
@@ -8,28 +9,50 @@ import { LoginPassword } from './auth/login-password'
 import { ChangePasswordModal } from './auth/change-password-modal'
 import { AuthLayout } from './auth/auth-layout'
 import { useAuthStore } from '../store/auth-store'
+import { useLicenseStore } from '../store/license-store'
+import { useAppStore } from '../store/app-store'
+import { useLicenseFilterStore } from '../store/license-filter-store'
 import { useAutoLock } from '../hooks/use-auto-lock'
 import { useLicenseStatusRefresh } from '../hooks/use-license-status-refresh'
+import { useDocumentTitle } from '../hooks/use-document-title'
+import { countExpiringLicenses } from '../utils/dashboard'
+import type { License } from '../types/license'
+import type { LicenseStatus } from '../types/license-status'
+import type { LicensesNavigationIntent } from '../types/navigation'
 import type { Theme } from '../utils/theme'
 
 type AppRootProps = {
   initialTheme: Theme
 }
 
-function ViewPlaceholder({ title, stage }: { title: string; stage: string }) {
-  return (
-    <section className="fade-in rounded-card border border-border bg-surface-elevated p-8 shadow-card">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-2 text-sm text-muted">Раздел в разработке — {stage}.</p>
-    </section>
-  )
-}
-
 function UnlockedApp({ initialTheme }: AppRootProps) {
   useAutoLock()
   useLicenseStatusRefresh()
+
+  const licenses = useLicenseStore((state) => state.licenses)
+  const expiringThresholdDays = useAppStore(
+    (state) => state.settings.expiringThresholdDays,
+  )
+  const setStatusFilter = useLicenseFilterStore((state) => state.setStatusFilter)
+
+  const expiringCount = countExpiringLicenses(licenses, expiringThresholdDays)
+  useDocumentTitle(expiringCount)
+
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
-  const [activeView, setActiveView] = useState<AppView>('licenses')
+  const [activeView, setActiveView] = useState<AppView>('dashboard')
+  const [licensesIntent, setLicensesIntent] =
+    useState<LicensesNavigationIntent | null>(null)
+
+  const navigateToLicensesWithStatus = (status: LicenseStatus) => {
+    setStatusFilter(status)
+    setLicensesIntent(null)
+    setActiveView('licenses')
+  }
+
+  const navigateToLicense = (license: License) => {
+    setLicensesIntent({ kind: 'edit', licenseId: license.id })
+    setActiveView('licenses')
+  }
 
   return (
     <>
@@ -38,11 +61,19 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
         activeView={activeView}
         onNavigate={setActiveView}
       >
-        {activeView === 'licenses' ? <DemoPanel /> : null}
-        {activeView === 'categories' ? <CategoryPanel /> : null}
         {activeView === 'dashboard' ? (
-          <ViewPlaceholder title="Дашборд" stage="этап 8" />
+          <DashboardPanel
+            onFilterByStatus={navigateToLicensesWithStatus}
+            onOpenLicense={navigateToLicense}
+          />
         ) : null}
+        {activeView === 'licenses' ? (
+          <DemoPanel
+            intent={licensesIntent}
+            onIntentHandled={() => setLicensesIntent(null)}
+          />
+        ) : null}
+        {activeView === 'categories' ? <CategoryPanel /> : null}
         {activeView === 'settings' ? (
           <SettingsPanel onChangePassword={() => setChangePasswordOpen(true)} />
         ) : null}

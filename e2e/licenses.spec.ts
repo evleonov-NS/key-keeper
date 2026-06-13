@@ -5,6 +5,8 @@ test.describe('Лицензии', () => {
   test.beforeEach(async ({ page }) => {
     await setupVault(page)
     await loadDemoData(page)
+    await page.getByRole('button', { name: 'Лицензии' }).click()
+    await expect(page.getByRole('heading', { name: /Лицензии \(7\)/ })).toBeVisible()
   })
 
   test('демо-данные отображаются на странице', async ({ page }) => {

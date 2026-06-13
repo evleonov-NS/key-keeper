@@ -3,6 +3,8 @@ import { Database, Plus } from 'lucide-react'
 import type { License } from '../../types/license'
 import type { LicenseStatus } from '../../types/license-status'
 import type { Platform } from '../../types/platform'
+import { LICENSE_STATUS_CARDS } from '../../constants/license-status-cards'
+import type { LicensesNavigationIntent } from '../../types/navigation'
 import { useAppStore } from '../../store/app-store'
 import { useLicenseStore } from '../../store/license-store'
 import { useCategoryStore } from '../../store/category-store'
@@ -28,51 +30,15 @@ type LicenseModalState =
   | { mode: 'create' }
   | { mode: 'edit'; license: License }
 
-const STATUS_CARDS: Array<{
-  status: LicenseStatus
-  label: string
-  shortLabel: string
-  tone: string
-  activeRing: string
-}> = [
-  {
-    status: 'active',
-    label: 'Активные',
-    shortLabel: 'Актив.',
-    tone: 'text-green-600 dark:text-green-400',
-    activeRing: 'ring-green-500/40',
-  },
-  {
-    status: 'expiring',
-    label: 'Истекают',
-    shortLabel: 'Истек.',
-    tone: 'text-amber-600 dark:text-amber-400',
-    activeRing: 'ring-amber-500/40',
-  },
-  {
-    status: 'expired',
-    label: 'Просрочены',
-    shortLabel: 'Проср.',
-    tone: 'text-red-600 dark:text-red-400',
-    activeRing: 'ring-red-500/40',
-  },
-  {
-    status: 'perpetual',
-    label: 'Бессрочные',
-    shortLabel: 'Бесср.',
-    tone: 'text-gray-700 dark:text-gray-300',
-    activeRing: 'ring-gray-400/40',
-  },
-  {
-    status: 'archived',
-    label: 'В архиве',
-    shortLabel: 'Архив',
-    tone: 'text-gray-500 dark:text-gray-500',
-    activeRing: 'ring-gray-400/30',
-  },
-]
+type DemoPanelProps = {
+  intent?: LicensesNavigationIntent | null
+  onIntentHandled?: () => void
+}
 
-export function DemoPanel() {
+export function DemoPanel({
+  intent = null,
+  onIntentHandled,
+}: DemoPanelProps) {
   const [licenseModal, setLicenseModal] = useState<LicenseModalState>({
     mode: 'closed',
   })
@@ -143,6 +109,24 @@ export function DemoPanel() {
     () => filteredResults.map((result) => result.license.id),
     [filteredResults],
   )
+
+  useEffect(() => {
+    if (!intent) {
+      return
+    }
+
+    if (intent.kind === 'status') {
+      setStatusFilter(intent.status)
+      onIntentHandled?.()
+      return
+    }
+
+    const license = licenses.find((item) => item.id === intent.licenseId)
+    if (license) {
+      setLicenseModal({ mode: 'edit', license })
+    }
+    onIntentHandled?.()
+  }, [intent, licenses, onIntentHandled, setStatusFilter])
 
   useEffect(() => {
     const visible = new Set(visibleIds)
@@ -308,7 +292,7 @@ export function DemoPanel() {
         </div>
 
         <div className="mt-6 grid grid-cols-5 gap-1.5 sm:gap-3">
-          {STATUS_CARDS.map((card) => {
+          {LICENSE_STATUS_CARDS.map((card) => {
             const isActive = statusFilter === card.status
             return (
               <button
