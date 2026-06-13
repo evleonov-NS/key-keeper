@@ -23,6 +23,7 @@ export function SettingsPanel({
   const setExpiringThresholdDays = useAppStore(
     (state) => state.setExpiringThresholdDays,
   )
+  const setAutoLockMinutes = useAppStore((state) => state.setAutoLockMinutes)
   const setNotificationsEnabled = useAppStore(
     (state) => state.setNotificationsEnabled,
   )
@@ -249,13 +250,24 @@ export function SettingsPanel({
       </section>
 
       <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
-        <h2 className="mb-4 text-lg font-semibold">Хранилище</h2>
-        <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-muted">Авто-блокировка</dt>
-            <dd className="font-medium">{settings.autoLockMinutes} мин</dd>
-          </div>
-        </dl>
+        <h2 className="mb-2 text-lg font-semibold">Хранилище</h2>
+        <p className="mb-4 text-sm text-muted">
+          Авто-блокировка срабатывает по бездействию, если в шапке выключена
+          опция «Сессия до закрытия».
+        </p>
+        <label className="flex max-w-xs flex-col gap-1.5">
+          <span className="text-sm font-medium">Авто-блокировка, мин</span>
+          <input
+            type="number"
+            min={1}
+            max={480}
+            value={settings.autoLockMinutes}
+            onChange={(event) =>
+              setAutoLockMinutes(Number(event.target.value))
+            }
+            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition-shadow focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+        </label>
       </section>
     </div>
   )

@@ -20,6 +20,7 @@ type AppStore = {
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
   setKeepSessionOpen: (keepSessionOpen: boolean) => void
+  setAutoLockMinutes: (minutes: number) => void
   setSidebarSortEnabled: (sidebarSortEnabled: boolean) => void
   setExpiringThresholdDays: (days: number) => void
   setNotificationsEnabled: (notificationsEnabled: boolean) => void
@@ -63,6 +64,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (key) {
       const { settings } = get()
       void saveTabSession(key, keepSessionOpen, settings.autoLockMinutes)
+    }
+  },
+
+  setAutoLockMinutes: (minutes) => {
+    const autoLockMinutes = Math.min(480, Math.max(1, Math.round(minutes)))
+    set((state) => ({
+      settings: { ...state.settings, autoLockMinutes },
+    }))
+    get().incrementChangeCount()
+
+    const key = getSessionKey()
+    if (key) {
+      const { settings } = get()
+      void saveTabSession(key, settings.keepSessionOpen, autoLockMinutes)
     }
   },
 

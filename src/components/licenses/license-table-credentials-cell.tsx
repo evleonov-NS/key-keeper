@@ -47,7 +47,7 @@ export function LicenseTableCredentialsCell({
   }
 
   return (
-    <div className="flex min-w-[7.5rem] flex-col gap-1">
+    <div className="flex min-w-0 max-w-full flex-col gap-1 overflow-hidden">
       {license.accountLogin ? (
         <button
           type="button"

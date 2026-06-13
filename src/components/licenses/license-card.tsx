@@ -33,6 +33,7 @@ type CopyableFieldButtonProps = {
   variant: 'login' | 'key'
   highlight?: SearchHighlight | null
   highlightField?: SearchHighlight['field']
+  className?: string
 }
 
 const VARIANT_IDLE: Record<
@@ -54,12 +55,11 @@ function CopyableFieldButton({
   variant,
   highlight = null,
   highlightField,
+  className = '',
 }: CopyableFieldButtonProps) {
   if (!value) {
     return null
   }
-
-  const isFirst = variant === 'login'
 
   return (
     <button
@@ -68,14 +68,12 @@ function CopyableFieldButton({
       aria-label={ariaLabel}
       title={ariaLabel}
       className={`inline-flex w-full items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm transition-all duration-theme ${
-        isFirst ? 'mt-2' : 'mt-1.5'
-      } ${
         variant === 'login' ? 'font-medium' : 'font-mono tracking-wider'
       } ${
         copied
           ? 'border-green-500 bg-green-50 text-green-700 dark:border-green-600 dark:bg-green-950/40 dark:text-green-300'
           : VARIANT_IDLE[variant]
-      }`}
+      } ${className}`}
     >
       {copied ? (
         <>
@@ -135,10 +133,10 @@ export function LicenseCard({
         text={license.name}
         start={highlight.start}
         end={highlight.end}
-        className="truncate"
+        className="line-clamp-2"
       />
     ) : (
-      <span className="truncate">{license.name}</span>
+      <span className="line-clamp-2">{license.name}</span>
     )
 
   const categoryContent =
@@ -196,7 +194,7 @@ export function LicenseCard({
 
   return (
     <article
-      className={`group relative rounded-xl border bg-surface px-4 py-3 transition-shadow duration-theme hover:shadow-card ${
+      className={`group relative flex h-full flex-col rounded-xl border bg-surface px-4 py-3 transition-shadow duration-theme hover:shadow-card ${
         selected ? 'border-accent/50 ring-1 ring-accent/20' : 'border-border'
       }`}
     >
@@ -213,95 +211,95 @@ export function LicenseCard({
         </div>
       ) : null}
 
-      <div
-        className={`flex items-start justify-between gap-3 ${
-          selectable ? 'pl-6' : ''
-        }`}
-      >
-        <div className="min-w-0 flex-1">
+      <div className={`shrink-0 ${selectable ? 'pl-6' : ''}`}>
+        <button
+          type="button"
+          onClick={() => onEdit(license)}
+          className="block w-full min-w-0 text-left"
+        >
+          <h3 className="line-clamp-2 min-h-[2.625rem] font-medium leading-snug">
+            {nameContent}
+          </h3>
+        </button>
+        <p className="mt-0.5 min-h-[1.125rem] truncate text-xs text-muted">
           <button
             type="button"
-            onClick={() => onEdit(license)}
-            className="w-full text-left"
+            onClick={handlePlatformClick}
+            className="rounded-sm text-accent underline-offset-2 transition-colors hover:text-accent-hover hover:underline"
           >
-            <h3 className="font-medium">{nameContent}</h3>
+            {highlight?.field === 'platform' ? (
+              <HighlightText
+                text={PLATFORM_LABELS[license.platform]}
+                start={highlight.start}
+                end={highlight.end}
+              />
+            ) : (
+              PLATFORM_LABELS[license.platform]
+            )}
           </button>
-          <p className="mt-0.5 text-xs text-muted">
-            <button
-              type="button"
-              onClick={handlePlatformClick}
-              className="rounded-sm text-accent underline-offset-2 transition-colors hover:text-accent-hover hover:underline"
-            >
-              {highlight?.field === 'platform' ? (
-                <HighlightText
-                  text={PLATFORM_LABELS[license.platform]}
-                  start={highlight.start}
-                  end={highlight.end}
-                />
-              ) : (
-                PLATFORM_LABELS[license.platform]
-              )}
-            </button>
-            {' · '}
-            <button
-              type="button"
-              onClick={handleCategoryClick}
-              className="rounded-sm text-accent underline-offset-2 transition-colors hover:text-accent-hover hover:underline"
-            >
-              {categoryContent}
-            </button>
-          </p>
+          {' · '}
+          <button
+            type="button"
+            onClick={handleCategoryClick}
+            className="rounded-sm text-accent underline-offset-2 transition-colors hover:text-accent-hover hover:underline"
+          >
+            {categoryContent}
+          </button>
+        </p>
+        <div className="min-h-[1.25rem]">
           <LicenseExpiryHint license={license} />
         </div>
-        <StatusBadge status={license.status} />
       </div>
 
-      <CopyableFieldButton
-        value={license.accountLogin}
-        copied={loginCopied}
-        onCopy={handleCopyLogin}
-        copiedLabel="Логин скопирован"
-        ariaLabel="Скопировать логин"
-        variant="login"
-        highlight={highlight}
-        highlightField="accountLogin"
-      />
+      <div className="mt-2 flex min-h-[2.625rem] items-center">
+        <CopyableFieldButton
+          value={license.accountLogin}
+          copied={loginCopied}
+          onCopy={handleCopyLogin}
+          copiedLabel="Логин скопирован"
+          ariaLabel="Скопировать логин"
+          variant="login"
+          highlight={highlight}
+          highlightField="accountLogin"
+        />
+      </div>
 
-      <CopyableFieldButton
-        value={license.licenseKey}
-        copied={keyCopied}
-        onCopy={handleCopyKey}
-        copiedLabel="Ключ скопирован"
-        ariaLabel="Скопировать ключ"
-        variant="key"
-        highlight={highlight}
-        highlightField="licenseKey"
-      />
+      <div className="mt-1.5 flex min-h-[2.625rem] items-center">
+        <CopyableFieldButton
+          value={license.licenseKey}
+          copied={keyCopied}
+          onCopy={handleCopyKey}
+          copiedLabel="Ключ скопирован"
+          ariaLabel="Скопировать ключ"
+          variant="key"
+          highlight={highlight}
+          highlightField="licenseKey"
+        />
+      </div>
 
-      {license.comment ? (
-        <p className="mt-2 text-xs text-muted">{commentContent}</p>
-      ) : null}
+      <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs text-muted">
+        {license.comment ? commentContent : '\u00A0'}
+      </p>
 
-      {license.tags.length > 0 ? (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {license.tags.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation()
-                onTagClick?.(item)
-              }}
-              className="rounded-md bg-surface-elevated px-1.5 py-0.5 text-[10px] text-muted transition-colors hover:text-accent"
-            >
-              #{item}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <div className="mt-2 flex min-h-[1.375rem] flex-wrap items-center gap-1">
+        {license.tags.map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              onTagClick?.(item)
+            }}
+            className="rounded-md bg-surface-elevated px-1.5 py-0.5 text-[10px] text-muted transition-colors hover:text-accent"
+          >
+            #{item}
+          </button>
+        ))}
+      </div>
 
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <div className="flex gap-2">
+      <div className="mt-auto flex items-center justify-between gap-2 pt-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <StatusBadge status={license.status} />
           {license.isDemo ? (
             <span className="inline-flex rounded-md bg-accent/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
               demo
@@ -309,47 +307,48 @@ export function LicenseCard({
           ) : null}
         </div>
 
-        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={() => onEdit(license)}
-            aria-label="Редактировать"
-            className="rounded-md p-1.5 text-muted hover:bg-surface-elevated hover:text-gray-700 dark:hover:text-gray-200"
-          >
-            <Pencil size={14} />
-          </button>
-          {license.status !== 'archived' ? (
+        <div className="flex shrink-0 items-center gap-1">
+          {license.images.length > 0 ? (
             <button
               type="button"
-              onClick={() => onArchive(license)}
-              aria-label="В архив"
-              className="rounded-md p-1.5 text-muted hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30 dark:hover:text-amber-300"
+              onClick={(event) => {
+                event.stopPropagation()
+                setGalleryOpen(true)
+              }}
+              aria-label={`Фото: ${license.images.length}`}
+              title={`Фото (${license.images.length})`}
+              className="relative flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface-elevated text-muted shadow-sm transition-colors hover:border-accent/50 hover:text-accent"
             >
-              <Archive size={14} />
+              <Camera size={15} strokeWidth={2} />
+              {license.images.length > 1 ? (
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-white">
+                  {license.images.length}
+                </span>
+              ) : null}
             </button>
           ) : null}
+          <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => onEdit(license)}
+              aria-label="Редактировать"
+              className="rounded-md p-1.5 text-muted hover:bg-surface-elevated hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              <Pencil size={14} />
+            </button>
+            {license.status !== 'archived' ? (
+              <button
+                type="button"
+                onClick={() => onArchive(license)}
+                aria-label="В архив"
+                className="rounded-md p-1.5 text-muted hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30 dark:hover:text-amber-300"
+              >
+                <Archive size={14} />
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
-
-      {license.images.length > 0 ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            setGalleryOpen(true)
-          }}
-          aria-label={`Фото: ${license.images.length}`}
-          title={`Фото (${license.images.length})`}
-          className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface-elevated text-muted shadow-sm transition-colors hover:border-accent/50 hover:text-accent"
-        >
-          <Camera size={15} strokeWidth={2} />
-          {license.images.length > 1 ? (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-white">
-              {license.images.length}
-            </span>
-          ) : null}
-        </button>
-      ) : null}
 
       {galleryOpen ? (
         <PhotoGalleryModal

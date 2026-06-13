@@ -7,6 +7,7 @@ import { NO_CATEGORY_FILTER } from '../../store/license-filter-store'
 import { useCategoryStore } from '../../store/category-store'
 import { HighlightText } from '../ui/highlight-text'
 import { LicenseTableCredentialsCell } from './license-table-credentials-cell'
+import { LicenseTablePhoto } from './license-table-photo'
 import { StatusBadge } from './status-badge'
 
 type LicenseTableRow = {
@@ -60,11 +61,21 @@ export function LicenseTable({
   const categories = useCategoryStore((state) => state.categories)
 
   return (
-    <div className="rounded-xl border border-border">
-      <table className="w-full border-collapse text-left text-sm">
+    <div className="min-w-0 overflow-x-auto rounded-xl border border-border">
+      <table className="w-full min-w-[48rem] table-fixed border-collapse text-left text-sm">
+        <colgroup>
+          <col className="w-[5%]" />
+          <col className="w-[24%]" />
+          <col className="w-[10%]" />
+          <col className="w-[11%]" />
+          <col className="w-[11%]" />
+          <col className="w-[12%]" />
+          <col className="w-[17%]" />
+          <col className="w-[10%]" />
+        </colgroup>
         <thead>
           <tr className="border-b border-border bg-surface text-xs text-muted">
-            <th className="w-10 py-2 pl-3 pr-2">
+            <th className="py-2 pl-3 pr-2">
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
@@ -79,12 +90,12 @@ export function LicenseTable({
               />
             </th>
             <th className="px-3 py-2 font-medium">Название</th>
-            <th className="w-[9%] whitespace-nowrap px-3 py-2 font-medium">Платформа</th>
-            <th className="w-[10%] whitespace-nowrap px-3 py-2 font-medium">Категория</th>
-            <th className="w-[10%] whitespace-nowrap px-3 py-2 font-medium">Статус</th>
-            <th className="w-[14%] whitespace-nowrap px-3 py-2 font-medium">Срок</th>
-            <th className="whitespace-nowrap px-3 py-2 font-medium">Логин / ключ</th>
-            <th className="w-20 whitespace-nowrap px-3 py-2 font-medium">Действия</th>
+            <th className="px-3 py-2 font-medium">Платформа</th>
+            <th className="px-3 py-2 font-medium">Категория</th>
+            <th className="px-3 py-2 font-medium">Статус</th>
+            <th className="px-3 py-2 font-medium">Срок</th>
+            <th className="px-3 py-2 font-medium">Логин / ключ</th>
+            <th className="px-3 py-2 font-medium">Действия</th>
           </tr>
         </thead>
         <tbody>
@@ -111,42 +122,49 @@ export function LicenseTable({
                   />
                 </td>
                 <td className="px-3 py-2 align-middle">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(license)}
-                    className="text-left font-medium hover:text-accent"
-                  >
-                    {highlight?.field === 'name' ? (
-                      <HighlightText
-                        text={license.name}
-                        start={highlight.start}
-                        end={highlight.end}
-                        className="truncate"
-                      />
-                    ) : (
-                      license.name
-                    )}
-                  </button>
-                  {license.tags.length > 0 ? (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {license.tags.map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => onTagClick(item)}
-                          className="rounded-md bg-surface-elevated px-1.5 py-0.5 text-[10px] text-muted hover:text-accent"
-                        >
-                          #{item}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
+                  <div className="min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(license)}
+                      className="block w-full min-w-0 text-left font-medium hover:text-accent"
+                    >
+                      {highlight?.field === 'name' ? (
+                        <HighlightText
+                          text={license.name}
+                          start={highlight.start}
+                          end={highlight.end}
+                          className="block truncate"
+                        />
+                      ) : (
+                        <span className="block truncate">{license.name}</span>
+                      )}
+                    </button>
+                    {license.tags.length > 0 || license.images.length > 0 ? (
+                      <div className="mt-1 flex min-w-0 items-center gap-2">
+                        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                          {license.tags.map((item) => (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => onTagClick(item)}
+                              className="rounded-md bg-surface-elevated px-1.5 py-0.5 text-[10px] text-muted hover:text-accent"
+                            >
+                              #{item}
+                            </button>
+                          ))}
+                        </div>
+                        {license.images.length > 0 ? (
+                          <LicenseTablePhoto license={license} />
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
                 </td>
-                <td className="px-3 py-2 align-middle">
+                <td className="overflow-hidden px-3 py-2 align-middle">
                   <button
                     type="button"
                     onClick={() => onPlatformClick(license.platform)}
-                    className="block whitespace-normal break-words text-left text-accent hover:underline"
+                    className="block w-full truncate text-left text-accent hover:underline"
                   >
                     {highlight?.field === 'platform' ? (
                       <HighlightText
@@ -159,13 +177,13 @@ export function LicenseTable({
                     )}
                   </button>
                 </td>
-                <td className="px-3 py-2 align-middle">
+                <td className="overflow-hidden px-3 py-2 align-middle">
                   <button
                     type="button"
                     onClick={() =>
                       onCategoryClick(license.category ?? NO_CATEGORY_FILTER)
                     }
-                    className="block whitespace-normal break-words text-left leading-snug text-accent hover:underline"
+                    className="block w-full truncate text-left text-accent hover:underline"
                   >
                     {highlight?.field === 'category' ? (
                       <HighlightText

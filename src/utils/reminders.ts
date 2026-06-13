@@ -40,3 +40,22 @@ export function countAttentionLicenses(
 ): number {
   return getAttentionLicenses(licenses, expiringThresholdDays).length
 }
+
+/** Склонение «лицензия» по числу (1 / 2–4 / 5+) */
+export function pluralLicenseNoun(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) {
+    return 'лицензия'
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return 'лицензии'
+  }
+  return 'лицензий'
+}
+
+export function formatAttentionLicensesLabel(count: number): string {
+  const noun = pluralLicenseNoun(count)
+  const verb = noun === 'лицензия' ? 'требует' : 'требуют'
+  return `${count} ${noun} ${verb} внимания`
+}

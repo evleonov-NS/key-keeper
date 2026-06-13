@@ -57,3 +57,30 @@ export async function unlockVault(
     page.getByRole('heading', { name: 'Дашборд' }),
   ).toBeVisible({ timeout: 60_000 })
 }
+
+export function attachConsoleCollector(page: Page): string[] {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      errors.push(message.text())
+    }
+  })
+  return errors
+}
+
+export async function addRealLicense(
+  page: Page,
+  name: string,
+  licenseKey: string,
+): Promise<void> {
+  await page.getByRole('button', { name: 'Лицензии' }).click()
+  await page.getByRole('button', { name: 'Добавить' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await dialog.locator('#license-name').fill(name)
+  await dialog.locator('#license-key').fill(licenseKey)
+  await dialog.getByRole('button', { name: 'Добавить' }).click()
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByRole('heading', { name })).toBeVisible()
+}

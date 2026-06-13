@@ -319,7 +319,7 @@ export function DemoPanel({
         </div>
       </section>
 
-      <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
+      <section className="min-w-0 rounded-card border border-border bg-surface-elevated p-6 shadow-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -404,7 +404,8 @@ export function DemoPanel({
         ) : filteredResults.length === 0 ? (
           <p className="text-sm text-muted">{emptyMessage()}</p>
         ) : viewMode === 'table' ? (
-          <LicenseTable
+          <div className="min-w-0">
+            <LicenseTable
             rows={filteredResults}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
@@ -417,6 +418,7 @@ export function DemoPanel({
             onPlatformClick={handlePlatformClick}
             onTagClick={handleTagClick}
           />
+          </div>
         ) : (
           <div className="space-y-3">
             {filteredResults.length > 1 ? (
@@ -437,7 +439,7 @@ export function DemoPanel({
               </label>
             ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid auto-rows-fr gap-3 sm:grid-cols-2">
               {filteredResults.map(({ license, highlight }) => (
                 <LicenseCard
                   key={license.id}

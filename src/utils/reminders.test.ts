@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { License } from '../types/license'
 import {
   countAttentionLicenses,
+  formatAttentionLicensesLabel,
   getAttentionLicenses,
   isRemindableLicense,
 } from './reminders'
@@ -113,5 +114,16 @@ describe('countAttentionLicenses', () => {
     ]
 
     expect(countAttentionLicenses(licenses, 14)).toBe(1)
+  })
+})
+
+describe('formatAttentionLicensesLabel', () => {
+  it('склоняет «лицензия» по правилам русского языка', () => {
+    expect(formatAttentionLicensesLabel(1)).toBe('1 лицензия требует внимания')
+    expect(formatAttentionLicensesLabel(2)).toBe('2 лицензии требуют внимания')
+    expect(formatAttentionLicensesLabel(5)).toBe('5 лицензий требуют внимания')
+    expect(formatAttentionLicensesLabel(11)).toBe('11 лицензий требуют внимания')
+    expect(formatAttentionLicensesLabel(21)).toBe('21 лицензия требует внимания')
+    expect(formatAttentionLicensesLabel(22)).toBe('22 лицензии требуют внимания')
   })
 })

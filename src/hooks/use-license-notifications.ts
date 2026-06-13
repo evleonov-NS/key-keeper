@@ -3,6 +3,7 @@ import type { License } from '../types/license'
 import {
   NOTIFICATION_SESSION_KEY,
   countAttentionLicenses,
+  formatAttentionLicensesLabel,
   getAttentionLicenses,
 } from '../utils/reminders'
 import { formatDaysLeftLabel, getDaysUntilExpiry } from '../utils/dates'
@@ -66,10 +67,7 @@ export function useLicenseNotifications({
       }
 
       const body = buildNotificationBody(licenses, expiringThresholdDays)
-      const label =
-        attentionCount === 1
-          ? '1 лицензия требует внимания'
-          : `${attentionCount} лицензии требуют внимания`
+      const label = formatAttentionLicensesLabel(attentionCount)
 
       new Notification('key-keeper', {
         body: `${label}\n${body}`,
