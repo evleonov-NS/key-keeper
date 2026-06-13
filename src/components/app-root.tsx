@@ -7,6 +7,10 @@ import { SettingsPanel } from './settings/settings-panel'
 import { SetupPassword } from './auth/setup-password'
 import { LoginPassword } from './auth/login-password'
 import { ChangePasswordModal } from './auth/change-password-modal'
+import { BackupReminderBanner } from './export/backup-reminder-banner'
+import { ExcelExportModal } from './export/excel-export-modal'
+import { VaultExportModal } from './export/vault-export-modal'
+import { VaultImportModal } from './export/vault-import-modal'
 import { AuthLayout } from './auth/auth-layout'
 import { useAuthStore } from '../store/auth-store'
 import { useLicenseStore } from '../store/license-store'
@@ -47,6 +51,16 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
   })
 
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+  const [vaultExportOpen, setVaultExportOpen] = useState(false)
+  const [vaultImportOpen, setVaultImportOpen] = useState(false)
+  const [excelExportOpen, setExcelExportOpen] = useState(false)
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const changeCount = useAppStore((state) => state.meta.changeCount)
+
+  useEffect(() => {
+    setBannerDismissed(false)
+  }, [changeCount])
+
   const [activeView, setActiveView] = useState<AppView>('dashboard')
   const [licensesIntent, setLicensesIntent] =
     useState<LicensesNavigationIntent | null>(null)
@@ -70,6 +84,16 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
         attentionCount={attentionCount}
         onNavigate={setActiveView}
         onOpenLicense={navigateToLicense}
+        topBanner={
+          <BackupReminderBanner
+            dismissed={bannerDismissed}
+            onDismiss={() => setBannerDismissed(true)}
+            onExport={() => {
+              setVaultExportOpen(true)
+              setActiveView('settings')
+            }}
+          />
+        }
       >
         {activeView === 'dashboard' ? (
           <DashboardPanel
@@ -85,11 +109,28 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
         ) : null}
         {activeView === 'categories' ? <CategoryPanel /> : null}
         {activeView === 'settings' ? (
-          <SettingsPanel onChangePassword={() => setChangePasswordOpen(true)} />
+          <SettingsPanel
+            onChangePassword={() => setChangePasswordOpen(true)}
+            onExportVault={() => setVaultExportOpen(true)}
+            onImportVault={() => setVaultImportOpen(true)}
+            onExportExcel={() => setExcelExportOpen(true)}
+          />
         ) : null}
       </AppLayout>
       {changePasswordOpen ? (
         <ChangePasswordModal onClose={() => setChangePasswordOpen(false)} />
+      ) : null}
+      {vaultExportOpen ? (
+        <VaultExportModal
+          onClose={() => setVaultExportOpen(false)}
+          onSuccess={() => setBannerDismissed(true)}
+        />
+      ) : null}
+      {vaultImportOpen ? (
+        <VaultImportModal onClose={() => setVaultImportOpen(false)} />
+      ) : null}
+      {excelExportOpen ? (
+        <ExcelExportModal onClose={() => setExcelExportOpen(false)} />
       ) : null}
     </>
   )

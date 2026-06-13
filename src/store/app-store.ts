@@ -23,6 +23,9 @@ type AppStore = {
   setSidebarSortEnabled: (sidebarSortEnabled: boolean) => void
   setExpiringThresholdDays: (days: number) => void
   setNotificationsEnabled: (notificationsEnabled: boolean) => void
+  setBackupReminderDays: (days: number) => void
+  setBackupReminderChanges: (count: number) => void
+  markExportCompleted: () => void
   incrementChangeCount: () => void
   loadDemoSeed: () => void
   clearDemo: () => void
@@ -94,6 +97,31 @@ export const useAppStore = create<AppStore>((set, get) => ({
       void Notification.requestPermission()
     }
   },
+
+  setBackupReminderDays: (days) => {
+    const backupReminderDays = Math.min(365, Math.max(1, Math.round(days)))
+    set((state) => ({
+      settings: { ...state.settings, backupReminderDays },
+    }))
+    get().incrementChangeCount()
+  },
+
+  setBackupReminderChanges: (count) => {
+    const backupReminderChanges = Math.min(999, Math.max(1, Math.round(count)))
+    set((state) => ({
+      settings: { ...state.settings, backupReminderChanges },
+    }))
+    get().incrementChangeCount()
+  },
+
+  markExportCompleted: () =>
+    set((state) => ({
+      meta: {
+        ...state.meta,
+        lastExportAt: new Date().toISOString(),
+        changeCount: 0,
+      },
+    })),
 
   incrementChangeCount: () =>
     set((state) => ({

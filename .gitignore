@@ -12,6 +12,7 @@ src-tauri/target
 
 # бэкапы — не коммитить
 *.vault
+*.xlsx
 
 # редактор и ОС
 .vscode/*

@@ -1,13 +1,21 @@
-import { KeyRound, Sparkles, Trash2 } from 'lucide-react'
+import { FileDown, FileSpreadsheet, FileUp, KeyRound, Sparkles, Trash2 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import { useLicenseStore } from '../../store/license-store'
 import { useLicenseFilterStore } from '../../store/license-filter-store'
 
 type SettingsPanelProps = {
   onChangePassword: () => void
+  onExportVault: () => void
+  onImportVault: () => void
+  onExportExcel: () => void
 }
 
-export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
+export function SettingsPanel({
+  onChangePassword,
+  onExportVault,
+  onImportVault,
+  onExportExcel,
+}: SettingsPanelProps) {
   const loadDemoSeed = useAppStore((state) => state.loadDemoSeed)
   const clearDemo = useAppStore((state) => state.clearDemo)
   const settings = useAppStore((state) => state.settings)
@@ -18,6 +26,13 @@ export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
   const setNotificationsEnabled = useAppStore(
     (state) => state.setNotificationsEnabled,
   )
+  const setBackupReminderDays = useAppStore(
+    (state) => state.setBackupReminderDays,
+  )
+  const setBackupReminderChanges = useAppStore(
+    (state) => state.setBackupReminderChanges,
+  )
+  const meta = useAppStore((state) => state.meta)
   const hasDemoLicenses = useLicenseStore((state) =>
     state.licenses.some((license) => license.isDemo),
   )
@@ -80,6 +95,90 @@ export function SettingsPanel({ onChangePassword }: SettingsPanelProps) {
               Очистить демо
             </button>
           )}
+        </div>
+      </section>
+
+      <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
+        <h2 className="mb-2 text-lg font-semibold">Резервное копирование</h2>
+        <p className="mb-4 text-sm text-muted">
+          Зашифрованный файл .vault — основной способ переноса и бэкапа. Пароль
+          файла может отличаться от мастер-пароля.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onExportVault}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-medium transition-colors hover:bg-surface-elevated"
+          >
+            <FileDown size={16} />
+            Экспорт .vault
+          </button>
+          <button
+            type="button"
+            onClick={onImportVault}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-medium transition-colors hover:bg-surface-elevated"
+          >
+            <FileUp size={16} />
+            Импорт .vault
+          </button>
+          <button
+            type="button"
+            onClick={onExportExcel}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-medium transition-colors hover:bg-surface-elevated"
+          >
+            <FileSpreadsheet size={16} />
+            Экспорт Excel
+          </button>
+        </div>
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-muted">Последний экспорт</dt>
+            <dd className="font-medium">
+              {meta.lastExportAt
+                ? new Date(meta.lastExportAt).toLocaleString('ru-RU')
+                : 'ещё не делали'}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted">Изменений с бэкапа</dt>
+            <dd className="font-medium">{meta.changeCount}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
+        <h2 className="mb-2 text-lg font-semibold">Напоминание о бэкапе</h2>
+        <p className="mb-4 text-sm text-muted">
+          Баннер вверху экрана, если давно не экспортировали или накопилось
+          много изменений.
+        </p>
+        <div className="grid max-w-md gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">Дней без экспорта</span>
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={settings.backupReminderDays}
+              onChange={(event) =>
+                setBackupReminderDays(Number(event.target.value))
+              }
+              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition-shadow focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">Изменений до напоминания</span>
+            <input
+              type="number"
+              min={1}
+              max={999}
+              value={settings.backupReminderChanges}
+              onChange={(event) =>
+                setBackupReminderChanges(Number(event.target.value))
+              }
+              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition-shadow focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+          </label>
         </div>
       </section>
 

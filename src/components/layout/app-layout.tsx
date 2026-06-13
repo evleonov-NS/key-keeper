@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
 
 type AppLayoutProps = {
   children: ReactNode
+  topBanner?: ReactNode
   initialTheme: Theme
   activeView: AppView
   attentionCount: number
@@ -33,6 +34,7 @@ type AppLayoutProps = {
 
 export function AppLayout({
   children,
+  topBanner,
   initialTheme,
   activeView,
   attentionCount,
@@ -59,6 +61,8 @@ export function AppLayout({
           </div>
         </div>
       </header>
+
+      {topBanner}
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:flex-row sm:px-6">
         <aside
