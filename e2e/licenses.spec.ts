@@ -1,5 +1,11 @@
-import { expect, test } from '@playwright/test'
-import { loadDemoData, setupVault } from './helpers'
+import { expect, test, type Page } from '@playwright/test'
+import { addRealLicense, loadDemoData, setupVault } from './helpers'
+
+function licenseArticle(page: Page, name: string) {
+  return page.getByRole('article').filter({
+    has: page.getByRole('heading', { name }),
+  })
+}
 
 test.describe('Лицензии', () => {
   test.beforeEach(async ({ page }) => {
@@ -66,5 +72,38 @@ test.describe('Лицензии', () => {
       bulkBar.getByRole('button', { name: 'В архив', exact: true }),
     ).toBeVisible()
     await expect(bulkBar.getByRole('button', { name: 'Удалить' })).toBeVisible()
+  })
+})
+
+test.describe('CRUD реальной лицензии', () => {
+  test('создать, отредактировать и архивировать', async ({ page }) => {
+    await setupVault(page)
+    await addRealLicense(page, 'E2E CRUD App', 'KEY-CRUD-001')
+
+    await expect(
+      page.getByRole('heading', { name: /Лицензии \(1\)/ }),
+    ).toBeVisible()
+
+    const card = licenseArticle(page, 'E2E CRUD App')
+    await card.hover()
+    await card.getByRole('button', { name: 'Редактировать' }).click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await dialog.locator('#license-name').fill('E2E CRUD App Updated')
+    await dialog.locator('#license-form-submit').click()
+    await expect(dialog).not.toBeVisible()
+
+    const updatedCard = licenseArticle(page, 'E2E CRUD App Updated')
+    await expect(updatedCard).toBeVisible()
+
+    page.once('dialog', (confirm) => confirm.accept())
+    await updatedCard.hover()
+    await updatedCard.getByRole('button', { name: 'В архив' }).click()
+
+    await expect(updatedCard.getByText('В архиве')).toBeVisible()
+    await expect(
+      updatedCard.getByRole('button', { name: 'В архив' }),
+    ).not.toBeVisible()
   })
 })
