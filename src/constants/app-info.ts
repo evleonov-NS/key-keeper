@@ -6,8 +6,8 @@ export const APP_VERSION = '1.0.0'
 
 export const APP_AUTHOR = 'Леонов'
 
-/** Дата и время выпуска текущей версии (ISO 8601, локаль MSK) */
-export const APP_RELEASED_AT = '2026-06-12T22:00:00+03:00'
+/** Дата и время выпуска v1.0.0 (этап 10 закрыт, 06.07.2026 MSK) */
+export const APP_RELEASED_AT = '2026-07-06T22:00:00+03:00'
 
 export function formatLocalDateTime(date: Date = new Date()): string {
   return new Intl.DateTimeFormat('ru-RU', {
