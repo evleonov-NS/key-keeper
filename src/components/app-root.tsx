@@ -22,6 +22,7 @@ import { useDocumentTitle } from '../hooks/use-document-title'
 import { useLicenseNotifications } from '../hooks/use-license-notifications'
 import { useToast } from '../hooks/use-toast'
 import { ToastContainer } from './ui/toast'
+import { VaultSaveErrorBanner } from './ui/vault-save-error-banner'
 import { countAttentionLicenses } from '../utils/reminders'
 import type { License } from '../types/license'
 import type { LicenseStatus } from '../types/license-status'
@@ -88,14 +89,17 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
         onNavigate={setActiveView}
         onOpenLicense={navigateToLicense}
         topBanner={
-          <BackupReminderBanner
-            dismissed={bannerDismissed}
-            onDismiss={() => setBannerDismissed(true)}
-            onExport={() => {
-              setVaultExportOpen(true)
-              setActiveView('settings')
-            }}
-          />
+          <>
+            <VaultSaveErrorBanner />
+            <BackupReminderBanner
+              dismissed={bannerDismissed}
+              onDismiss={() => setBannerDismissed(true)}
+              onExport={() => {
+                setVaultExportOpen(true)
+                setActiveView('settings')
+              }}
+            />
+          </>
         }
       >
         {activeView === 'dashboard' ? (

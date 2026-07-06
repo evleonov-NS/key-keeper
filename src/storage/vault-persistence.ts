@@ -22,6 +22,7 @@ function scheduleSave(): void {
     try {
       const vaultData = useAppStore.getState().getVaultData()
       await persistVault(vaultData)
+      useAppStore.getState().setError(null)
     } catch {
       // Не логируем содержимое vault
       useAppStore.getState().setError('Не удалось сохранить хранилище')
