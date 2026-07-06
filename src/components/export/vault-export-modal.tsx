@@ -4,7 +4,7 @@ import { exportVaultBackup } from '../../export/vault-io'
 import { VaultFileError } from '../../export/vault-file'
 import { checkMasterPassword } from '../../storage/vault-service'
 import { PasswordField } from '../auth/password-field'
-import { Modal } from '../ui/modal'
+import { Modal, ModalCancelButton } from '../ui/modal'
 
 type VaultExportModalProps = {
   onClose: () => void
@@ -17,6 +17,9 @@ export function VaultExportModal({ onClose, onSuccess }: VaultExportModalProps) 
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isDirty =
+    masterPassword.length > 0 || password.length > 0 || confirm.length > 0
 
   const canSubmit =
     masterPassword.length > 0 &&
@@ -55,7 +58,7 @@ export function VaultExportModal({ onClose, onSuccess }: VaultExportModalProps) 
   }
 
   return (
-    <Modal title="Экспорт .vault" onClose={onClose}>
+    <Modal title="Экспорт .vault" onClose={onClose} dirty={isDirty}>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <p className="text-sm text-muted">
           Файл шифруется отдельным паролем — он может отличаться от текущего
@@ -91,13 +94,7 @@ export function VaultExportModal({ onClose, onSuccess }: VaultExportModalProps) 
         ) : null}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-surface"
-          >
-            Отмена
-          </button>
+          <ModalCancelButton onClose={onClose} />
           <button
             type="submit"
             disabled={!canSubmit}

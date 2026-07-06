@@ -3,7 +3,7 @@ import { importVaultBackup } from '../../export/vault-io'
 import { VaultFileError } from '../../export/vault-file'
 import type { ImportMode } from '../../export/vault-merge'
 import { PasswordField } from '../auth/password-field'
-import { Modal } from '../ui/modal'
+import { Modal, ModalCancelButton } from '../ui/modal'
 
 type VaultImportModalProps = {
   onClose: () => void
@@ -17,6 +17,8 @@ export function VaultImportModal({ onClose, onSuccess }: VaultImportModalProps) 
   const [mode, setMode] = useState<ImportMode>('merge')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isDirty = file !== null || password.length > 0 || mode !== 'merge'
 
   const canSubmit = Boolean(file) && password.length > 0 && !isSubmitting
 
@@ -53,7 +55,7 @@ export function VaultImportModal({ onClose, onSuccess }: VaultImportModalProps) 
   }
 
   return (
-    <Modal title="Импорт .vault" onClose={onClose}>
+    <Modal title="Импорт .vault" onClose={onClose} dirty={isDirty}>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <p className="text-sm text-muted">
           Введите пароль, которым был зашифрован этот файл. После импорта данные
@@ -125,13 +127,7 @@ export function VaultImportModal({ onClose, onSuccess }: VaultImportModalProps) 
         ) : null}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-surface"
-          >
-            Отмена
-          </button>
+          <ModalCancelButton onClose={onClose} />
           <button
             type="submit"
             disabled={!canSubmit}

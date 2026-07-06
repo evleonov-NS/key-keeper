@@ -5,7 +5,7 @@ import { checkMasterPassword } from '../../storage/vault-service'
 import { useCategoryStore } from '../../store/category-store'
 import { useLicenseStore } from '../../store/license-store'
 import { PasswordField } from '../auth/password-field'
-import { Modal } from '../ui/modal'
+import { Modal, ModalCancelButton } from '../ui/modal'
 
 type ExcelExportModalProps = {
   onClose: () => void
@@ -20,6 +20,9 @@ export function ExcelExportModal({ onClose, onSuccess }: ExcelExportModalProps) 
   const [masterPassword, setMasterPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isDirty =
+    !maskKeys || confirmed || masterPassword.length > 0
 
   const needsMasterPassword = !maskKeys
 
@@ -52,7 +55,7 @@ export function ExcelExportModal({ onClose, onSuccess }: ExcelExportModalProps) 
     (!needsMasterPassword || masterPassword.length > 0)
 
   return (
-    <Modal title="Экспорт в Excel" onClose={onClose} wide>
+    <Modal title="Экспорт в Excel" onClose={onClose} dirty={isDirty} wide>
       <div className="space-y-4">
         <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
           <AlertTriangle
@@ -113,13 +116,7 @@ export function ExcelExportModal({ onClose, onSuccess }: ExcelExportModalProps) 
         ) : null}
 
         <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-surface"
-          >
-            Отмена
-          </button>
+          <ModalCancelButton onClose={onClose} />
           <button
             type="button"
             disabled={!canSubmit}

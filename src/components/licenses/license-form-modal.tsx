@@ -35,6 +35,7 @@ export function LicenseFormModal({
   const [pendingImages, setPendingImages] = useState<Blob[] | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [savedHint, setSavedHint] = useState(false)
+  const [isDirty, setIsDirty] = useState(false)
 
   const persistValues = (
     values: LicenseFormValues,
@@ -144,6 +145,7 @@ export function LicenseFormModal({
     <Modal
       title={mode === 'create' ? 'Новая лицензия' : 'Редактирование'}
       onClose={onClose}
+      dirty={isDirty || duplicateWarning !== null}
       wide
     >
       <LicenseForm
@@ -153,6 +155,7 @@ export function LicenseFormModal({
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
         onCancel={onClose}
+        onDirtyChange={setIsDirty}
         onArchive={mode === 'edit' ? handleArchive : undefined}
         onRestore={mode === 'edit' ? handleRestore : undefined}
         onDeletePermanent={mode === 'edit' ? handleDeletePermanent : undefined}

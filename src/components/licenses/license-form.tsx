@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { License } from '../../types/license'
 import { PLATFORM_LABELS, type Platform } from '../../types/platform'
 import {
@@ -25,6 +25,7 @@ type LicenseFormProps = {
   onArchive?: () => void
   onRestore?: () => void
   onDeletePermanent?: () => void
+  onDirtyChange?: (dirty: boolean) => void
 }
 
 const inputClass =
@@ -40,11 +41,34 @@ export function LicenseForm({
   onArchive,
   onRestore,
   onDeletePermanent,
+  onDirtyChange,
 }: LicenseFormProps) {
   const [values, setValues] = useState<LicenseFormValues>(
     initialLicense ? licenseToFormValues(initialLicense) : createEmptyLicenseForm(),
   )
   const [images, setImages] = useState<Blob[]>(initialLicense?.images ?? [])
+
+  const baselineValues = useMemo(
+    () =>
+      initialLicense
+        ? licenseToFormValues(initialLicense)
+        : createEmptyLicenseForm(),
+    [initialLicense],
+  )
+  const baselineImageCount = initialLicense?.images.length ?? 0
+
+  useEffect(() => {
+    if (!onDirtyChange) {
+      return
+    }
+
+    const valuesChanged = (
+      Object.keys(values) as (keyof LicenseFormValues)[]
+    ).some((key) => values[key] !== baselineValues[key])
+    const imagesChanged = images.length !== baselineImageCount
+
+    onDirtyChange(valuesChanged || imagesChanged)
+  }, [values, images, baselineValues, baselineImageCount, onDirtyChange])
 
   const setField = <K extends keyof LicenseFormValues>(
     field: K,
