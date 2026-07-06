@@ -80,7 +80,7 @@ export async function addRealLicense(
   await expect(dialog).toBeVisible()
   await dialog.locator('#license-name').fill(name)
   await dialog.locator('#license-key').fill(licenseKey)
-  await dialog.getByRole('button', { name: 'Добавить' }).click()
+  await dialog.locator('#license-form-submit').click()
   await expect(dialog).not.toBeVisible()
   await expect(page.getByRole('heading', { name })).toBeVisible()
 }

@@ -67,6 +67,26 @@ test.describe('Ревью перед Tauri', () => {
     ).not.toBeVisible()
   })
 
+  test('«Сессия до закрытия» на мобильном — через настройки', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 })
+    await setupVault(page)
+
+    await page.getByRole('button', { name: 'Настройки' }).click()
+    await page
+      .getByRole('heading', { name: 'Хранилище' })
+      .locator('..')
+      .getByLabel('Сессия до закрытия')
+      .check()
+    await page.reload()
+
+    await expect(page.getByRole('heading', { name: 'Дашборд' })).toBeVisible({
+      timeout: 60_000,
+    })
+    await expect(
+      page.getByRole('heading', { name: 'Разблокировка' }),
+    ).not.toBeVisible()
+  })
+
   test('баннер бэкапа при превышении порога изменений', async ({ page }) => {
     await setupVault(page)
     await page.getByRole('button', { name: 'Настройки' }).click()

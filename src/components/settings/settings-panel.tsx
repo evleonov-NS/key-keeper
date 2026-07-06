@@ -24,6 +24,7 @@ export function SettingsPanel({
     (state) => state.setExpiringThresholdDays,
   )
   const setAutoLockMinutes = useAppStore((state) => state.setAutoLockMinutes)
+  const setKeepSessionOpen = useAppStore((state) => state.setKeepSessionOpen)
   const setNotificationsEnabled = useAppStore(
     (state) => state.setNotificationsEnabled,
   )
@@ -252,22 +253,39 @@ export function SettingsPanel({
       <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
         <h2 className="mb-2 text-lg font-semibold">Хранилище</h2>
         <p className="mb-4 text-sm text-muted">
-          Авто-блокировка срабатывает по бездействию, если в шапке выключена
-          опция «Сессия до закрытия».
+          Авто-блокировка срабатывает по бездействию, если выключена опция
+          «Сессия до закрытия».
         </p>
-        <label className="flex max-w-xs flex-col gap-1.5">
-          <span className="text-sm font-medium">Авто-блокировка, мин</span>
-          <input
-            type="number"
-            min={1}
-            max={480}
-            value={settings.autoLockMinutes}
-            onChange={(event) =>
-              setAutoLockMinutes(Number(event.target.value))
-            }
-            className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition-shadow focus:border-accent focus:ring-2 focus:ring-accent/20"
-          />
-        </label>
+        <div className="space-y-4">
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:bg-surface-elevated">
+            <input
+              type="checkbox"
+              checked={settings.keepSessionOpen}
+              onChange={(event) => setKeepSessionOpen(event.target.checked)}
+              className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+            />
+            <span className="text-sm">
+              Сессия до закрытия
+              <span className="mt-0.5 block text-xs text-muted">
+                Не запрашивать пароль при обновлении вкладки; ключ остаётся в
+                памяти до закрытия приложения.
+              </span>
+            </span>
+          </label>
+          <label className="flex max-w-xs flex-col gap-1.5">
+            <span className="text-sm font-medium">Авто-блокировка, мин</span>
+            <input
+              type="number"
+              min={1}
+              max={480}
+              value={settings.autoLockMinutes}
+              onChange={(event) =>
+                setAutoLockMinutes(Number(event.target.value))
+              }
+              className="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition-shadow focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+          </label>
+        </div>
       </section>
     </div>
   )
