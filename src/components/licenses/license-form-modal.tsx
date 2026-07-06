@@ -34,22 +34,35 @@ export function LicenseFormModal({
   )
   const [pendingImages, setPendingImages] = useState<Blob[] | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [savedHint, setSavedHint] = useState(false)
 
-  const persistValues = (values: LicenseFormValues, images: Blob[]) => {
+  const persistValues = (
+    values: LicenseFormValues,
+    images: Blob[],
+    closeAfterSave = true,
+  ) => {
     const payload = toLicensePayload(values, license, images)
     if (mode === 'create') {
       addLicense(payload)
     } else if (license) {
       updateLicense(license.id, payload)
     }
-    onClose()
+    if (closeAfterSave) {
+      onClose()
+    }
   }
 
-  const handleSubmit = (values: LicenseFormValues, images: Blob[]) => {
+  const handleSubmit = (
+    values: LicenseFormValues,
+    images: Blob[],
+    options?: { closeAfterSave?: boolean },
+  ) => {
+    const closeAfterSave = options?.closeAfterSave ?? true
     const validationError = validateLicenseForm(values)
     if (validationError) {
       setFormError(validationError)
       setDuplicateWarning(null)
+      setSavedHint(false)
       return
     }
 
@@ -66,12 +79,20 @@ export function LicenseFormModal({
         `Ключ уже используется в «${duplicate.name}». Сохранить всё равно?`,
       )
       setFormError(null)
+      setSavedHint(false)
       return
     }
 
     setIsSubmitting(true)
-    persistValues(values, images)
+    persistValues(values, images, closeAfterSave)
     setIsSubmitting(false)
+
+    if (!closeAfterSave) {
+      setFormError(null)
+      setDuplicateWarning(null)
+      setSavedHint(true)
+      window.setTimeout(() => setSavedHint(false), 2000)
+    }
   }
 
   const confirmDuplicate = () => {
@@ -136,6 +157,10 @@ export function LicenseFormModal({
         onRestore={mode === 'edit' ? handleRestore : undefined}
         onDeletePermanent={mode === 'edit' ? handleDeletePermanent : undefined}
       />
+
+      {savedHint ? (
+        <p className="mt-3 text-sm text-green-700 dark:text-green-300">Сохранено</p>
+      ) : null}
 
       {duplicateWarning ? (
         <div className="mt-3 flex gap-2">

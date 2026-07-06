@@ -46,15 +46,18 @@ export function LicenseTableCredentialsCell({
     window.setTimeout(() => setKeyCopied(false), 2000)
   }
 
+  const sizeClass =
+    'max-w-full px-1.5 py-0.5 text-[10px] xl:px-2 xl:py-1 xl:text-xs'
+
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-1 overflow-hidden">
+    <div className="flex min-w-0 max-w-full flex-col gap-0.5 overflow-hidden">
       {license.accountLogin ? (
         <button
           type="button"
           onClick={(event) => void handleCopyLogin(event)}
           aria-label={`Скопировать логин «${license.name}»`}
           title="Скопировать логин"
-          className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-left text-xs transition-all duration-theme ${
+          className={`inline-flex max-w-full items-center gap-1 rounded-md border text-left transition-all duration-theme ${sizeClass} ${
             loginCopied ? COPIED : LOGIN_IDLE
           }`}
         >
@@ -81,7 +84,7 @@ export function LicenseTableCredentialsCell({
         onClick={(event) => void handleCopyKey(event)}
         aria-label={`Скопировать ключ «${license.name}»`}
         title="Скопировать ключ"
-        className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-left font-mono text-xs tracking-wider transition-all duration-theme ${
+        className={`inline-flex max-w-full items-center gap-1 rounded-md border text-left font-mono tracking-wider transition-all duration-theme ${sizeClass} ${
           keyCopied ? COPIED : KEY_IDLE
         }`}
       >

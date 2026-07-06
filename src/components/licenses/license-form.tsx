@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { License } from '../../types/license'
 import { PLATFORM_LABELS, type Platform } from '../../types/platform'
-import { useCategoryStore } from '../../store/category-store'
 import {
   createEmptyLicenseForm,
   licenseToFormValues,
@@ -9,13 +8,19 @@ import {
 } from '../../utils/license-validation'
 import { LicenseKeyField } from './license-key-field'
 import { LicensePhotoField } from './license-photo-field'
+import { LicenseCategoryField } from './license-category-field'
+import { ShortDateInput } from '../ui/short-date-input'
 
 type LicenseFormProps = {
   initialLicense?: License
   formError: string | null
   duplicateWarning: string | null
   isSubmitting: boolean
-  onSubmit: (values: LicenseFormValues, images: Blob[]) => void
+  onSubmit: (
+    values: LicenseFormValues,
+    images: Blob[],
+    options?: { closeAfterSave?: boolean },
+  ) => void
   onCancel: () => void
   onArchive?: () => void
   onRestore?: () => void
@@ -36,7 +41,6 @@ export function LicenseForm({
   onRestore,
   onDeletePermanent,
 }: LicenseFormProps) {
-  const categories = useCategoryStore((state) => state.categories)
   const [values, setValues] = useState<LicenseFormValues>(
     initialLicense ? licenseToFormValues(initialLicense) : createEmptyLicenseForm(),
   )
@@ -57,11 +61,38 @@ export function LicenseForm({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    onSubmit(values, images)
+    onSubmit(values, images, { closeAfterSave: true })
+  }
+
+  const saveWithoutClose = () => {
+    onSubmit(values, images, {
+      closeAfterSave: !initialLicense,
+    })
+  }
+
+  const handleFormKeyDown = (event: React.KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    const target = event.target as HTMLElement
+    if (target.id === 'license-tags') {
+      event.preventDefault()
+      saveWithoutClose()
+      return
+    }
+
+    if (target.tagName === 'TEXTAREA') {
+      return
+    }
+
+    if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+      event.preventDefault()
+    }
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form className="space-y-4" onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
       <div>
         <label htmlFor="license-name" className="mb-1.5 block text-sm font-medium">
           Название *
@@ -109,26 +140,10 @@ export function LicenseForm({
           </select>
         </div>
 
-        <div>
-          <label htmlFor="license-category" className="mb-1.5 block text-sm font-medium">
-            Категория
-          </label>
-          <select
-            id="license-category"
-            value={values.category ?? ''}
-            onChange={(event) =>
-              setField('category', event.target.value || null)
-            }
-            className={inputClass}
-          >
-            <option value="">Без категории</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <LicenseCategoryField
+          value={values.category}
+          onChange={(category) => setField('category', category)}
+        />
       </div>
 
       <div>
@@ -173,32 +188,22 @@ export function LicenseForm({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="purchase-date" className="mb-1.5 block text-sm font-medium">
-            Дата покупки
-          </label>
-          <input
-            id="purchase-date"
-            type="date"
-            value={values.purchaseDate}
-            onChange={(event) => setField('purchaseDate', event.target.value)}
-            className={inputClass}
-          />
-        </div>
+        <ShortDateInput
+          id="purchase-date"
+          label="Дата покупки"
+          value={values.purchaseDate}
+          nextFieldId="expiry-date"
+          onChange={(purchaseDate) => setField('purchaseDate', purchaseDate)}
+        />
 
-        <div>
-          <label htmlFor="expiry-date" className="mb-1.5 block text-sm font-medium">
-            Дата окончания
-          </label>
-          <input
-            id="expiry-date"
-            type="date"
-            value={values.expiryDate}
-            onChange={(event) => setField('expiryDate', event.target.value)}
-            disabled={values.isPerpetual}
-            className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-50`}
-          />
-        </div>
+        <ShortDateInput
+          id="expiry-date"
+          label="Дата окончания"
+          value={values.expiryDate}
+          disabled={values.isPerpetual}
+          nextFieldId="license-tags"
+          onChange={(expiryDate) => setField('expiryDate', expiryDate)}
+        />
       </div>
 
       <div className="flex flex-wrap gap-4">
@@ -234,6 +239,9 @@ export function LicenseForm({
           placeholder="офис, подписка"
           className={inputClass}
         />
+        {initialLicense ? (
+          <p className="mt-1 text-xs text-muted">Enter — сохранить без закрытия</p>
+        ) : null}
       </div>
 
       <LicensePhotoField images={images} onChange={setImages} />
@@ -263,6 +271,7 @@ export function LicenseForm({
       <div className="flex flex-wrap gap-2 pt-2">
         <button
           type="submit"
+          id="license-form-submit"
           disabled={isSubmitting}
           className="rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
         >

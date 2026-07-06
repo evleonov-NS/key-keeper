@@ -1,24 +1,55 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { exportLicensesToExcel } from '../../export/excel-export'
+import { checkMasterPassword } from '../../storage/vault-service'
 import { useCategoryStore } from '../../store/category-store'
 import { useLicenseStore } from '../../store/license-store'
+import { PasswordField } from '../auth/password-field'
 import { Modal } from '../ui/modal'
 
 type ExcelExportModalProps = {
   onClose: () => void
+  onSuccess?: (message: string) => void
 }
 
-export function ExcelExportModal({ onClose }: ExcelExportModalProps) {
+export function ExcelExportModal({ onClose, onSuccess }: ExcelExportModalProps) {
   const licenses = useLicenseStore((state) => state.licenses)
   const categories = useCategoryStore((state) => state.categories)
   const [maskKeys, setMaskKeys] = useState(true)
   const [confirmed, setConfirmed] = useState(false)
+  const [masterPassword, setMasterPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleExport = () => {
-    exportLicensesToExcel(licenses, categories, { maskKeys })
-    onClose()
+  const needsMasterPassword = !maskKeys
+
+  const handleExport = async () => {
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      if (needsMasterPassword) {
+        const valid = await checkMasterPassword(masterPassword)
+        if (!valid) {
+          setError('Неверный мастер-пароль')
+          return
+        }
+      }
+
+      await exportLicensesToExcel(licenses, categories, { maskKeys })
+      onSuccess?.('Экспорт Excel завершён')
+      onClose()
+    } catch {
+      setError('Не удалось создать файл Excel')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
+
+  const canSubmit =
+    confirmed &&
+    !isSubmitting &&
+    (!needsMasterPassword || masterPassword.length > 0)
 
   return (
     <Modal title="Экспорт в Excel" onClose={onClose} wide>
@@ -39,7 +70,11 @@ export function ExcelExportModal({ onClose }: ExcelExportModalProps) {
           <input
             type="checkbox"
             checked={maskKeys}
-            onChange={(event) => setMaskKeys(event.target.checked)}
+            onChange={(event) => {
+              setMaskKeys(event.target.checked)
+              setMasterPassword('')
+              setError(null)
+            }}
             className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
           />
           <span className="text-sm">
@@ -49,6 +84,15 @@ export function ExcelExportModal({ onClose }: ExcelExportModalProps) {
             </span>
           </span>
         </label>
+
+        {needsMasterPassword ? (
+          <PasswordField
+            id="excel-export-master-password"
+            label="Мастер-пароль"
+            value={masterPassword}
+            onChange={setMasterPassword}
+          />
+        ) : null}
 
         <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface px-4 py-3">
           <input
@@ -62,6 +106,12 @@ export function ExcelExportModal({ onClose }: ExcelExportModalProps) {
           </span>
         </label>
 
+        {error ? (
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+            {error}
+          </p>
+        ) : null}
+
         <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
@@ -72,11 +122,11 @@ export function ExcelExportModal({ onClose }: ExcelExportModalProps) {
           </button>
           <button
             type="button"
-            disabled={!confirmed}
-            onClick={handleExport}
+            disabled={!canSubmit}
+            onClick={() => void handleExport()}
             className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Скачать .xlsx
+            {isSubmitting ? 'Сохранение…' : 'Скачать .xlsx'}
           </button>
         </div>
       </div>

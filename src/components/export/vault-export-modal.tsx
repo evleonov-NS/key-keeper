@@ -2,21 +2,24 @@ import { useState } from 'react'
 import { MIN_MASTER_PASSWORD_LENGTH } from '../../crypto/constants'
 import { exportVaultBackup } from '../../export/vault-io'
 import { VaultFileError } from '../../export/vault-file'
+import { checkMasterPassword } from '../../storage/vault-service'
 import { PasswordField } from '../auth/password-field'
 import { Modal } from '../ui/modal'
 
 type VaultExportModalProps = {
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (message: string) => void
 }
 
 export function VaultExportModal({ onClose, onSuccess }: VaultExportModalProps) {
+  const [masterPassword, setMasterPassword] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const canSubmit =
+    masterPassword.length > 0 &&
     password.length >= MIN_MASTER_PASSWORD_LENGTH &&
     password === confirm &&
     !isSubmitting
@@ -31,8 +34,14 @@ export function VaultExportModal({ onClose, onSuccess }: VaultExportModalProps) 
     setError(null)
 
     try {
+      const validMaster = await checkMasterPassword(masterPassword)
+      if (!validMaster) {
+        setError('Неверный мастер-пароль')
+        return
+      }
+
       await exportVaultBackup(password)
-      onSuccess?.()
+      onSuccess?.('Экспорт .vault завершён')
       onClose()
     } catch (caught) {
       if (caught instanceof VaultFileError) {
@@ -53,6 +62,13 @@ export function VaultExportModal({ onClose, onSuccess }: VaultExportModalProps) 
           мастер-пароля. Сохраните пароль вместе с файлом.
         </p>
 
+        <PasswordField
+          id="export-master-password"
+          label="Мастер-пароль"
+          value={masterPassword}
+          onChange={setMasterPassword}
+          autoComplete="current-password"
+        />
         <PasswordField
           id="export-file-password"
           label="Пароль файла"

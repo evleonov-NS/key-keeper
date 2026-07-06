@@ -7,7 +7,7 @@ import { Modal } from '../ui/modal'
 
 type VaultImportModalProps = {
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (message: string) => void
 }
 
 export function VaultImportModal({ onClose, onSuccess }: VaultImportModalProps) {
@@ -38,7 +38,8 @@ export function VaultImportModal({ onClose, onSuccess }: VaultImportModalProps) 
     try {
       const bytes = new Uint8Array(await file.arrayBuffer())
       await importVaultBackup(bytes, password, mode)
-      onSuccess?.()
+      const modeLabel = mode === 'merge' ? 'объединён' : 'заменён'
+      onSuccess?.(`Импорт .vault завершён — хранилище ${modeLabel}`)
       onClose()
     } catch (caught) {
       if (caught instanceof VaultFileError) {

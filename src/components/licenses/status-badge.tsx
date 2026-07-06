@@ -11,12 +11,15 @@ const STATUS_STYLES: Record<LicenseStatus, string> = {
 
 type StatusBadgeProps = {
   status: LicenseStatus
+  compact?: boolean
 }
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status, compact = false }: StatusBadgeProps) {
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_STYLES[status]}`}
+      className={`inline-flex rounded-full font-medium ${STATUS_STYLES[status]} ${
+        compact ? 'px-1.5 py-0 text-[10px]' : 'px-2.5 py-0.5 text-xs'
+      }`}
     >
       {LICENSE_STATUS_LABELS[status]}
     </span>

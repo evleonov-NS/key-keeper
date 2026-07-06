@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import XLSX from 'xlsx-js-style'
 import type { Category } from '../types/category'
 import type { License } from '../types/license'
 import type { LicenseStatus } from '../types/license-status'
@@ -88,11 +87,12 @@ function autoColumnWidths(rows: (string | number)[][]): { wch: number }[] {
   return widths.map((wch) => ({ wch: wch + 2 }))
 }
 
-export function exportLicensesToExcel(
+export async function exportLicensesToExcel(
   licenses: License[],
   categories: Category[],
   options: ExcelExportOptions,
-): void {
+): Promise<void> {
+  const XLSX = await import('xlsx-js-style')
   const categoryById = new Map(categories.map((category) => [category.id, category.name]))
   const dataRows = licenses.map((license) => {
     const categoryName = license.category

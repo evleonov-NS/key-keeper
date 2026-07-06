@@ -38,6 +38,47 @@ export function formatExpiryDate(expiryDate: string): string {
   return dayjs(expiryDate).format('DD.MM.YYYY')
 }
 
+/** Короткий формат для полей ввода: дд.мм.гг */
+export function formatShortDate(isoDate: string): string {
+  return dayjs(isoDate).format('DD.MM.YY')
+}
+
+/** Форматирует цифры (до 6) в дд.мм.гг по мере ввода */
+export function formatDigitsAsShortDate(digits: string): string {
+  const clean = digits.replace(/\D/g, '').slice(0, 6)
+  if (clean.length <= 2) {
+    return clean
+  }
+  if (clean.length <= 4) {
+    return `${clean.slice(0, 2)}.${clean.slice(2)}`
+  }
+  return `${clean.slice(0, 2)}.${clean.slice(2, 4)}.${clean.slice(4)}`
+}
+
+/** Парсит дд.мм.гг → YYYY-MM-DD; `null` при пустой или невалидной строке */
+export function parseShortDateInput(text: string): string | null {
+  const trimmed = text.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  const match = /^(\d{1,2})\.(\d{1,2})\.(\d{2})$/.exec(trimmed)
+  if (!match) {
+    return null
+  }
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = 2000 + Number(match[3])
+  const parsed = dayjs(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`)
+
+  if (!parsed.isValid() || parsed.date() !== day || parsed.month() + 1 !== month) {
+    return null
+  }
+
+  return parsed.format('YYYY-MM-DD')
+}
+
 export function formatDaysLeftLabel(daysLeft: number | null): string {
   if (daysLeft === null) {
     return 'Бессрочно'

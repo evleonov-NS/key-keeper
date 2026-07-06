@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest'
 import {
   formatDaysLeftLabel,
   formatExpiryDate,
+  formatDigitsAsShortDate,
+  formatShortDate,
   getDaysUntilExpiry,
   getLicenseExpiryInfo,
+  parseShortDateInput,
 } from './dates'
 
 describe('dates', () => {
@@ -42,5 +45,33 @@ describe('dates', () => {
     expect(info.daysLeft).toBe(8)
     expect(info.label).toBe('Осталось 8 дней')
     expect(info.formattedDate).toBe('20.06.2026')
+  })
+})
+
+describe('formatShortDate', () => {
+  it('форматирует ISO в дд.мм.гг', () => {
+    expect(formatShortDate('2026-06-13')).toBe('13.06.26')
+  })
+})
+
+describe('formatDigitsAsShortDate', () => {
+  it('вставляет точки по мере ввода', () => {
+    expect(formatDigitsAsShortDate('14')).toBe('14')
+    expect(formatDigitsAsShortDate('1406')).toBe('14.06')
+    expect(formatDigitsAsShortDate('140626')).toBe('14.06.26')
+  })
+})
+
+describe('parseShortDateInput', () => {
+  it('парсит дд.мм.гг в ISO', () => {
+    expect(parseShortDateInput('13.06.26')).toBe('2026-06-13')
+  })
+
+  it('отклоняет невалидную дату', () => {
+    expect(parseShortDateInput('31.02.26')).toBeNull()
+  })
+
+  it('отклоняет неверный формат', () => {
+    expect(parseShortDateInput('13.06.2026')).toBeNull()
   })
 })

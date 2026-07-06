@@ -20,6 +20,8 @@ import { useAutoLock } from '../hooks/use-auto-lock'
 import { useLicenseStatusRefresh } from '../hooks/use-license-status-refresh'
 import { useDocumentTitle } from '../hooks/use-document-title'
 import { useLicenseNotifications } from '../hooks/use-license-notifications'
+import { useToast } from '../hooks/use-toast'
+import { ToastContainer } from './ui/toast'
 import { countAttentionLicenses } from '../utils/reminders'
 import type { License } from '../types/license'
 import type { LicenseStatus } from '../types/license-status'
@@ -56,6 +58,7 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
   const [excelExportOpen, setExcelExportOpen] = useState(false)
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const changeCount = useAppStore((state) => state.meta.changeCount)
+  const { toasts, showToast, dismissToast } = useToast()
 
   useEffect(() => {
     setBannerDismissed(false)
@@ -123,15 +126,25 @@ function UnlockedApp({ initialTheme }: AppRootProps) {
       {vaultExportOpen ? (
         <VaultExportModal
           onClose={() => setVaultExportOpen(false)}
-          onSuccess={() => setBannerDismissed(true)}
+          onSuccess={(message) => {
+            setBannerDismissed(true)
+            showToast(message)
+          }}
         />
       ) : null}
       {vaultImportOpen ? (
-        <VaultImportModal onClose={() => setVaultImportOpen(false)} />
+        <VaultImportModal
+          onClose={() => setVaultImportOpen(false)}
+          onSuccess={showToast}
+        />
       ) : null}
       {excelExportOpen ? (
-        <ExcelExportModal onClose={() => setExcelExportOpen(false)} />
+        <ExcelExportModal
+          onClose={() => setExcelExportOpen(false)}
+          onSuccess={showToast}
+        />
       ) : null}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </>
   )
 }

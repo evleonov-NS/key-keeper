@@ -65,6 +65,20 @@ export async function unlockVault(password: string): Promise<VaultData> {
   return unlockVaultWithKey(key)
 }
 
+export async function checkMasterPassword(password: string): Promise<boolean> {
+  const record = await dexieStorage.read()
+  if (!record) {
+    return false
+  }
+
+  try {
+    const key = await deriveVaultKey(password, record.salt)
+    return await verifyMasterPassword(key, record.verificationBlock)
+  } catch {
+    return false
+  }
+}
+
 export async function tryRestoreTabSession(): Promise<VaultData | null> {
   const key = await loadTabSessionKey()
   if (!key) {

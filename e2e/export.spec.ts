@@ -3,6 +3,7 @@ import {
   clearAppStorage,
   loadDemoData,
   setupVault,
+  TEST_MASTER_PASSWORD,
   unlockVault,
 } from './helpers'
 import path from 'node:path'
@@ -23,6 +24,7 @@ test.describe('Экспорт и импорт', () => {
     await page.getByRole('button', { name: 'Настройки' }).click()
     await page.getByRole('button', { name: 'Экспорт .vault' }).click()
 
+    await page.locator('#export-master-password').fill(TEST_MASTER_PASSWORD)
     await page.locator('#export-file-password').fill(FILE_BACKUP_PASSWORD)
     await page.locator('#export-file-confirm').fill(FILE_BACKUP_PASSWORD)
 
@@ -39,6 +41,7 @@ test.describe('Экспорт и импорт', () => {
 
     await page.getByRole('button', { name: 'Настройки' }).click()
     await page.getByRole('button', { name: 'Экспорт .vault' }).click()
+    await page.locator('#export-master-password').fill(TEST_MASTER_PASSWORD)
     await page.locator('#export-file-password').fill(FILE_BACKUP_PASSWORD)
     await page.locator('#export-file-confirm').fill(FILE_BACKUP_PASSWORD)
 
