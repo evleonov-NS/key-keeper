@@ -66,6 +66,22 @@
 
 После `npm run dev` открыть адрес из вывода Vite (обычно http://localhost:5173).
 
+### Самодостаточный HTML (без локального сервера)
+
+Сборка кладёт один файл `dist/index.html` — его можно открыть двойным щелчком
+в Chrome или Edge. Локальный сервер не нужен.
+
+[PowerShell Windows]
+
+    npm run build
+
+[PowerShell Windows]
+
+    Invoke-Item .\dist\index.html
+
+IndexedDB на `file://` работает в Chrome и Edge. Firefox для `file://` его
+отключает — там откройте файл через `npm run preview` или перетащите в Chromium.
+
 ### Сборка production-версии
 
 [PowerShell Windows]
